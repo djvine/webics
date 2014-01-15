@@ -1,0 +1,15 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<ul id="tab-menu">
+	{% for beamline in beamlines %}
+        <li  class="{% if active_tab == beamline %} active{% endif %}"><a href="/scans/{{ beamline }}/">{{ beamline.beamline }}</a></li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
