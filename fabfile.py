@@ -2,7 +2,7 @@ from fabric.api import lcd, local
 
 home = '/home/david'
 
-def prepare_deployment(branch_name):
+def prepare_deployment():
     local('python manage.py test webics')
     local('git add -p && git commit')
 
