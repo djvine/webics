@@ -1,1 +1,0 @@
-from scans.models import Scan, ScanData

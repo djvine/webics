@@ -5,7 +5,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'webics.views.home', name='home'),
-    url(r'^scans/', include('scans.urls')),
+    url(r'^$', 'webics.views.home', name='home'),
+    url(r'^scans/', include('scans.urls', namespace='scans')),
     url(r'^admin/', include(admin.site.urls)),
 )
