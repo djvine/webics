@@ -1,0 +1,39 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>Most Recent Scan Data</h2>
+
+<div class='row'>
+	<div class='col-xs-2'></div>
+	<div class='col-xs-2'><h4>Time</h4></div>
+	<div class='col-xs-3'><h4>Beamline</h4></div>
+	<div class='col-xs-3'><h4>Scan ID</h4></div>
+	<div class='col-xs-2'></div>
+</div>
+
+
+{% for scan in object_list %}
+<div class='row'>
+	<div class='col-xs-2'></div>
+	<div class='col-xs-2'>{{ scan.ts }}</div>
+	<div class='col-xs-3'>{{ scan.beamline }}</div>
+	<div class='col-xs-3'>{{scan.scan_id}}</div>
+	<div class='col-xs-2'></div>
+</div>
+{% empty %}
+<div class='row'>
+	<div class='col-xs-2'></div>
+    <div class='col-xs-8'>No scans yet.</div>
+    <div class='col-xs-2'></div>
+</div>
+{% endfor %}
+
+
+{% endblock %}
+
+

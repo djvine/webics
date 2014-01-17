@@ -1,19 +1,43 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-# Create your views here.
+from django.views.generic.list import ListView
+from django.utils import timezone
 
-def index(request):
-    latest_question_list = Question.objects.all().order_by('-pub_date')[:5]
-    context = {'latest_question_list': latest_question_list}
-    return render(request, 'polls/index.html', context)
+from scans.models import Scan, ScanData
+import scans.config
 
-def main(request):
-    return HttpResponse("Hello, world. You're at the scans index.")
+class ScansListView(ListView):
 
-def plots(request, beamline):
-    return HttpResponse("You're looking at scan data from  %s." % beamline)
+    model = Scan
 
-def images(request, beamline):
-    response = "You're looking at scan images from %s."
-    return HttpResponse(response % beamline)
+    def get_queryset(self, **kwargs):
+        return Scan.objects.all().order_by('-ts')[:50]
+
+    def get_context_data(self, **kwargs):
+        context = super(ScansListView, self).get_context_data(**kwargs)
+        context['title'] = 'Webics Recent Scan Summary'
+        context['beamlines'] = [{'beamline': beamline} for beamline in scans.config.beamline_list]
+        context['active_tab'] = ''
+        return context
+
+def home(request):
+    beamlines = [{'beamline': beamline} for beamline in scans.config.beamline_list]
+    recent_scans = Scan.objects.values('scan_id').distinct().order_by('-ts')[:50]
+
+    context = {'title': 'Webics Home', 'beamlines': beamlines, 'active_tab': "", 'recent_scans': recent_scans}
+    return render(request, 'scans/home.html', context)
+
+def plots(request):
+    beamlines = [{'beamline': beamline} for beamline in scans.config.beamline_list]
+    recent_scans = Scan.objects.values('scan_id').distinct().order_by('-ts')[:50]
+
+    context = {'title': 'Webics Home', 'beamlines': beamlines, 'active_tab': "", 'recent_scans': recent_scans}
+    return render(request, 'scans/home.html', context)
+
+def images(request):
+    beamlines = [{'beamline': beamline} for beamline in scans.config.beamline_list]
+    recent_scans = Scan.objects.values('scan_id').distinct().order_by('-ts')[:50]
+
+    context = {'title': 'Webics Home', 'beamlines': beamlines, 'active_tab': "", 'recent_scans': recent_scans}
+    return render(request, 'scans/home.html', context)
+
 
