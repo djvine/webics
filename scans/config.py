@@ -1,0 +1,1 @@
+beamlines = ['djv1', 'djv2', 'djv3', 'djv4']
