@@ -6,34 +6,38 @@
 
 {% block content %}
 
-<h2>Most Recent Scan Data</h2>
+<h3>Most Recent Scan Data</h3>
+<div class='col-xs-2'></div>
+<div class='col-xs-8'>
+	<table class="table table-striped">
 
-<div class='row'>
-	<div class='col-xs-2'></div>
-	<div class='col-xs-2'><h4>Time</h4></div>
-	<div class='col-xs-3'><h4>Beamline</h4></div>
-	<div class='col-xs-3'><h4>Scan ID</h4></div>
-	<div class='col-xs-2'></div>
+		<thead>
+			<tr> 
+			    <th>Time</th> 
+			    <th>Beamline</th> 
+			    <th>Scan ID</th>  
+			</tr>
+		</thead>
+		<tbody>
+
+			{% for scan in object_list %}
+			<tr>
+				<td>{{ scan.ts }}</td>
+				<td>{{ scan.beamline }}</td>
+				<td>{{ scan.scan_id }}</td>
+			</tr>
+			{% empty %}
+			<tr>
+			    <td>No scans yet.</td>
+			</tr>
+			{% endfor %}
+
+		</tbody>
+
+	</table>
 </div>
-
-
-{% for scan in object_list %}
-<div class='row'>
-	<div class='col-xs-2'></div>
-	<div class='col-xs-2'>{{ scan.ts }}</div>
-	<div class='col-xs-3'>{{ scan.beamline }}</div>
-	<div class='col-xs-3'>{{scan.scan_id}}</div>
-	<div class='col-xs-2'></div>
-</div>
-{% empty %}
-<div class='row'>
-	<div class='col-xs-2'></div>
-    <div class='col-xs-8'>No scans yet.</div>
-    <div class='col-xs-2'></div>
-</div>
-{% endfor %}
-
-
+<div class='col-xs-2'></div>
 {% endblock %}
+
 
 

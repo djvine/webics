@@ -13,9 +13,9 @@
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'webics/dist/css/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'webics/bower_components/bootstrap-switch/build/css/bootstrap3/bootstrap-switch.css' %}" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    
     <link href="{% static 'webics/starter-template.css' %}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -41,8 +41,9 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
+            <li  class="{% if active_tab == 'scans' %}active{% endif %}"><a href="/scans/">Scans</a></li>
             {% for beamline in beamlines %}
-            <li  class="{% if active_tab == beamline %} active{% endif %}"><a href="/scans/{{ beamline.beamline }}/">{{ beamline.beamline }}</a></li>
+            <li  class="{% if active_tab == beamline %} active{% endif %}"><a href="/scans/{{ beamline.beamline }}/plots">{{ beamline.beamline }}</a></li>
             {% endfor %}
           </ul>
         </div><!--/.nav-collapse -->
@@ -64,6 +65,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src="{% static 'webics/dist/js/bootstrap.min.js' %}"></script>
+    {% block end_script %}{% endblock %}
   </body>
 </html>

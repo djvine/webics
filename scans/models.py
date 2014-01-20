@@ -21,16 +21,17 @@ class Scan(models.Model):
     is_recent_scan.short_description = 'Recent scan?'
 
 class ScanHistory(models.Model):
-    scan = models.ForeignKey(Scan)
+    scan = models.ForeignKey(Scan, related_name='history')
     dim = models.IntegerField('Scan Dimension')
     completed = models.IntegerField('Points Completed')
+    requested = models.IntegerField('Points Requested')
 
 class ScanDetectors(models.Model):
-    scan = models.ForeignKey(Scan)
+    scan = models.ForeignKey(Scan, related_name='detectors')
     active = models.IntegerField('Valid Scan Record Detector Number')
 
 class ScanData(models.Model):
-    scan = models.ForeignKey(Scan)
+    scan = models.ForeignKey(Scan, related_name='data')
     pvname = models.CharField('PV name', max_length=256)
     row = models.IntegerField('Scan Row')
     value = models.TextField('Scan Value')
@@ -40,6 +41,6 @@ class ScanData(models.Model):
         return '{0:s} row: {1:d}'.format(self.pvname, self.row)
 
 class ScanMetadata(models.Model):
-    scan = models.ForeignKey(Scan)
+    scan = models.ForeignKey(Scan, related_name='metadata')
     pvname = models.CharField('PV name', max_length=256)
     value = models.TextField('Scan Value')

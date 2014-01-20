@@ -1,0 +1,164 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+
+<div class='col-xs-3'>
+	<h4>Scan History</h4>
+	<table class="table-condensed table-striped">
+
+		<thead>
+			<tr> 
+			    <th>Time</th>  
+			    <th>Scan ID</th>
+			    <th>1D</th>
+			    <th>2D</th> 
+			</tr>
+		</thead>
+		<tbody>
+
+			{% for scan in recent_scans %}
+			<tr>
+				<td>{{ scan.ts|date:"D d M" }}</td>
+				<td>{{ scan.scan_id }}</td>
+				{% for hist in scan.history.all %}
+				<td>{{ hist.completed }}/{{ hist.requested }}</td>
+				{% endfor %}
+			</tr>
+			{% empty %}
+			<tr>
+			    <td>No scans yet.</td>
+			</tr>
+			{% endfor %}
+
+		</tbody>
+
+	</table>
+</div>
+<script>
+function hasClass( elem, klass ) {
+     return (" " + elem.className + " " ).indexOf( " "+klass+" " ) > -1;
+}
+
+function toggle_state(button_id)
+{
+	if (hasClass(document.getElementById(button_id), 'btn-primary')){
+		document.getElementById(button_id).className = "btn btn-success btn-xs";
+	}
+	else {
+		document.getElementById(button_id).className = "btn btn-primary btn-xs";
+	}
+}
+</script>
+<div class='col-xs-6'></div>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var parseDate = d3.time.format("%d-%b-%y").parse;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var d = [
+	{
+		'x': 0,
+		'y': 0
+	},
+	{
+		'x': 1,
+		'y': 1
+	},
+	{
+		'x': 2,
+		'y': 2
+	},
+	{
+		'x': 3,
+		'y': 3
+	},
+	{
+		'x': 4,
+		'y': 4
+	},
+];
+
+json = JSON.parse( d );
+
+
+  x.domain(d3.extent(json, json.x));
+  y.domain(d3.extent(json, json.y));
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Price ($)");
+
+  svg.append("path")
+      .datum(json)
+      .attr("class", "line")
+      .attr("d", line);
+});
+
+</script>
+
+<div class='col-xs-3'>
+	<h4>Select Detectors</h4>
+	
+	{% for det in dets %}
+	{% if det == 'D00' or det == 'D07' or det == 'D14' or det == 'D21' or det == 'D28' or det == 'D35' or det == 'D42' or det == 'D49' or det == 'D56' or det == 'D63'%}
+	<div class='row detrows'>
+	{% endif %}
+		<button onclick="toggle_state(this.id)" type="button" class="btn btn-primary btn-xs" id="{{ det }}">{{ det }}</button>
+	{% if det == 'D06' or det == 'D13' or det == 'D20' or det == 'D27' or det == 'D34' or det == 'D41' or det == 'D48' or det == 'D55' or det == 'D62' or det == 'D69' %}
+	</div>
+	{% endif %}
+	{% endfor %}
+	
+
+</div>
+
+
+
+{% endblock %}
+
+
+

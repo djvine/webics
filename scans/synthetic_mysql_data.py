@@ -12,14 +12,14 @@ for i in range(10):
 	scans[i].save()
 
 for i, s in enumerate(scans):
-	s.scanhistory_set.create(dim=0, completed=11)
+	s.history.create(dim=0, completed=11, requested=11)
 	if i%2==0:
-		s.scanhistory_set.create(dim=1, completed=21)
+		s.history.create(dim=1, completed=21, requested=21)
 	for det in range(5,10):
-		s.scandetectors_set.create(active=det)
-		s.scandata_set.create(pvname='djv:scan1.D{:02d}DA'.format(det), row=0, value=str(cPickle.dumps(random((11)))))
+		s.detectors.create(active=det)
+		s.data.create(pvname='djv:scan1.D{:02d}DA'.format(det), row=0, value=str(cPickle.dumps(random((11)))))
 		if i%2==0:
 			for j in range(1,11):
-				s.scandata_set.create(pvname='djv:scan1.D{:02d}DA'.format(det), row=j, value=str(cPickle.dumps(random((11)))))
-	s.scanmetadata_set.create(pvname='djv:scan1.P1PV', value='Sample X')
-	s.scanmetadata_set.create(pvname='djv:scan2.P1PV', value='Sample Y')
+				s.data.create(pvname='djv:scan1.D{:02d}DA'.format(det), row=j, value=str(cPickle.dumps(random((11)))))
+	s.metadata.create(pvname='djv:scan1.P1PV', value='Sample X')
+	s.metadata.create(pvname='djv:scan2.P1PV', value='Sample Y')

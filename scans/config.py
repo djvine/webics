@@ -1,1 +1,1 @@
-beamline_list = ['djv1', 'djv2', 'djv3', 'djv4']
+beamline_list = ['djv', 'djv1', 'djv2', 'djv3', 'djv4']
