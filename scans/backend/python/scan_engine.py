@@ -1,5 +1,7 @@
 import os
 import multiprocessing as mp
+import signal
+import sys
 
 # EPICS
 import epics
@@ -10,12 +12,9 @@ from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadat
 # redis
 import redis
 
-pvs = {} # pvname: pv
 total_jobs = 0
 queue = mp.JoinableQueue()
-results = mp.Queue()
 num_processes = mp.cpu_count()
-tup = (queue, results)
 semaphore = {}
 
 
@@ -53,8 +52,6 @@ def init_scan(ioc_name):
         epics_connect(pref1d+'.D{:02d}CA'.format(i))
 
 def epics_connect(self, pvname, auto_monitor=False, callback=None):
-    if pvs.has_key(pvname):
-        return pvs[pvname]
     
     p = epics.PV(pvname, auto_monitor=auto_monitor)
     if callback:
@@ -64,27 +61,82 @@ def epics_connect(self, pvname, auto_monitor=False, callback=None):
         pvs[pvname] = p
     else:
     	print '{:s} Not Connected'.format(pvname)
+    return p
 
 def cb(pvname, value, **kwargs):
 	queue.put((pvname, value))
 	total_jobs += 1
 
+@worker
 def scan_control(*args, **kwargs):
+    print args
+    ioc_name = args[0].split(':')[0]
+
+    pref1d = ioc_name+':scan1'
+    pref2d = ioc_name+':scan2'
+
+    scan_dim = args[1]
+    if scan_dim == 1: # 1d scan w/no fluorescence detector
+        pass
+    elif scan_dim == 2: # 2d scan w/no fluorescence detector OR 1d scan w/fluorescence detector
+        pass
+    elif scan_dim == 3: # 2d scan w/ fluorescence detector
+        pass
+
+    scan_id = 
 
 def check_connectedness():
 	# Check if pvs are connected
 	# - Reconnect if possible
 	pass
 
+
+def signal_handler(signal, frame):
+    # catch ctrl-c and exit gracefully
+    
+    # Add poison pills to kill processes
+    for i in range(num_processes):
+        queue.put((None,))
+
+    sys.exit(0)
+
 def mainloop():
+    # Register for SIGINT before entering infinite loop
+    signal.signal(signal.SIGINT, signal_handler)
 
 	for beamline in scan.config.beamlines:
 		init_scan(beamline)
 
 	processes = [mp.Process(target=scan_control,
-            		args=tup) for i in range(num_processes)]
+            		args=queue) for i in range(num_processes)]
 
 	for process in self.p:
 	    process.start()
 
-	while True:
+	queue.join()
+
+    queue.close()
+
+    for process in processes:
+        process.join()
+
+
+def worker(func):
+
+    def worker2(*args, **kwargs):
+        name = mp.current_process().name
+        jobs_completed = 0
+        jobs = args[0]
+        while True:
+            job_args = jobs.get()
+            print '{:s} Enagaged: Scan {:s}'.format(name, job_args[0].split(':')[0])
+            if job_args[0] is None:  # Deal with Poison Pill
+                jobs.task_done()
+                break
+
+            func(job_args)
+            print '{:s} Disengaged: Completed Scan {:s}'.format(name, job_args[0].split(':')[0])
+            jobs_completed += 1
+            jobs.task_done()
+        return worker2
+    return worker2
