@@ -502,13 +502,13 @@ var createChart = function(data, container, margin){
 	var initX = function() {
 		// X scale starts at epoch time 1335035400000, ends at 1335294600000 with 300s increments
 		xScale = d3.scale.linear()
-                     .range([margin.left+15, w-margin.right])
+                     .range([margin.left, w-margin.right])
                      .domain([
                      	d3.min(dataset, function(d) { return d3.min(d.values, function (d) { return d.x; }); }), 
 	           			d3.max(dataset, function(d) { return d3.max(d.values, function (d) { return d.x; }); })
 	           			])
                      .nice();
-		
+
 		// create yAxis (with ticks)
 		xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(n_xticks).tickSubdivide(1);
 	}

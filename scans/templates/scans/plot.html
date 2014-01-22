@@ -73,32 +73,35 @@
 
 <div class='col-lg-4'>
 	<h4  class="text-center">Chat</h4>
-	<span class="chat">
-	</span>
-</div>
-<div class="row">
-  <div class="span2">
-      <ul id="people" class="unstyled"></ul>
-  </div>
-  <div class="span4">
-      <ul id="msgs" class="unstyled">
-  </div>
-</div>
-<div class="row">
-    <div class="span5 offset2" id="login">
-        <form class="form-inline">
-              <input type="text" class="input-small" placeholder="Your name" id="name">
-            <input type="button" name="join" id="join" value="Join" class="btn btn-primary">
-        </form>
-    </div>
+	<div>
+	  <div class="span2" id="chat-people">
+	      <ul id="people" class="unstyled"></ul>
+	  </div>
+	  <div class="span4" id="chat-messages">
+	      <ul id="msgs" class="unstyled">
+	  </div>
+	</div>
+	<div>
+	    <div class="span5 offset2" id="login">
+	        <form class="form-inline">
+	              <input type="text" class="input-small" placeholder="Your name" id="name">
+	            <input type="button" name="join" id="join" value="Join" class="btn btn-primary">
+	        </form>
+	        <div class="btn-group-xs">
+			  <button type="button" class="btn btn-default" id="2idb" onclick="onbeamline(this.id)">2-ID-B</button>
+			  <button type="button" class="btn btn-default" id="2idd" onclick="onbeamline(this.id)">2-ID-D</button>
+			  <button type="button" class="btn btn-default" id="2ide" onclick="onbeamline(this.id)">2-ID-E</button>
+			</div>
+	    </div>
 
-    <div class="span5 offset2" id="chat">
-        <form id="2" class="form-inline">
-              <input type="text" class="input" placeholder="Your message" id="msg">
-            <input type="button" name="send" id="send" value="Send" class="btn btn-success">
-        </form>
-    </div>
-  </div>
+	    <div class="span5 offset2" id="chat">
+	        <form id="2" class="form-inline">
+	              <input type="text" class="input" placeholder="Your message" id="msg">
+	            <input type="button" name="send" id="send" value="Send" class="btn btn-success">
+	        </form>
+			  <button type="button" class="btn btn-default" id="broadcast" onclick="onbroadcast(this.id)">Broadcast</button>
+	    </div>
+	 </div>
 </div>
 
 {% endblock %}
