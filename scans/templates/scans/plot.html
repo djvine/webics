@@ -17,8 +17,10 @@
 <div class='col-lg-12' id='chart'></div>
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="{% static 'webics/d3/plot.js' %}"></script>
+<script type="text/javascript"> 
+   var beamline = "{{ active_tab }}"
+</script>
 <script src="{% static 'webics/js/chat.js' %}"></script>
-
 <div class='col-lg-4' >
 	<h4>Scan History</h4>
 	<table class="table-condensed table-striped">
@@ -87,11 +89,6 @@
 	              <input type="text" class="input-small" placeholder="Your name" id="name">
 	            <input type="button" name="join" id="join" value="Join" class="btn btn-primary">
 	        </form>
-	        <div class="btn-group-xs">
-			  <button type="button" class="btn btn-default" id="2idb" onclick="onbeamline(this.id)">2-ID-B</button>
-			  <button type="button" class="btn btn-default" id="2idd" onclick="onbeamline(this.id)">2-ID-D</button>
-			  <button type="button" class="btn btn-default" id="2ide" onclick="onbeamline(this.id)">2-ID-E</button>
-			</div>
 	    </div>
 
 	    <div class="span5 offset2" id="chat">

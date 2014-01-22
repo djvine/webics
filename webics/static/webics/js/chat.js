@@ -8,8 +8,9 @@ $(document).ready(function(){
         // user clicks join
         $("#join").click(function(){
             var name = $("#name").val();
-            if (name != "" && selected_beamline != "") {
-                socket.emit("join", name, selected_beamline);
+            if (name != "") {
+                console.log(beamline);
+                socket.emit("join", name, beamline);
                 $("#login").detach();
                 $("#chat").show();
                 $("#msg").focus();
@@ -20,8 +21,8 @@ $(document).ready(function(){
         $("#name").keypress(function(e){
             if(e.which == 13) {
                 var name = $("#name").val();
-                if (name != "" && selected_beamline != "") {
-                    socket.emit("join", name);
+                if (name != "") {
+                    socket.emit("join", name, beamline);
                     ready = true;
                     $("#login").detach();
                     $("#chat").show();
@@ -60,37 +61,32 @@ $(document).ready(function(){
 
         $("#send").click(function(){
             var msg = $("#msg").val();
-            socket.emit("send", msg, selected_beamline);
+            socket.emit("send", msg, beamline);
             $("#msg").val("");
         });
 
         $("#msg").keypress(function(e){
             if(e.which == 13) {
                 var msg = $("#msg").val();
-                socket.emit("send", msg, selected_beamline);
+                socket.emit("send", msg, beamline);
                 $("#msg").val("");
             }
         });
 
     });
-var selected_beamline = "";
-var onbeamline = function(button_id){
-    selected_beamline = button_id;
-    console.log(selected_beamline);
-
-}
+    
 var old_beamline = "";
 var onbroadcast = function(button_id){
     
     if (document.getElementById(button_id).className == "btn btn-default"){
         document.getElementById(button_id).className = "btn btn-default active";
-        old_beamline = selected_beamline;
-        selected_beamline = button_id;
+        old_beamline = beamline;
+        beamline = button_id;
     }
     else {
         document.getElementById(button_id).className = "btn btn-default";
-        selected_beamline = old_beamline;
+        beamline = old_beamline;
         }
-    console.log(selected_beamline);
+    console.log(beamline);
 
 }

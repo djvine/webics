@@ -5,8 +5,11 @@ South==0.8.4
 argparse==1.2.1
 distribute==0.6.34
 ecdsa==0.10
+ipdb==0.8
+ipython==1.1.0
 numpy==1.8.0
 paramiko==1.12.1
 pycrypto==2.6.1
 pytz==2013.9
+redis==2.9.0
 wsgiref==0.1.2
