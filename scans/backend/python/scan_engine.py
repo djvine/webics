@@ -3,6 +3,7 @@ import signal
 import sys
 import time
 import threading
+import ipdb
 # EPICS
 import epics
 # django
@@ -14,7 +15,7 @@ from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadat
 # redis
 import redis
 
-redis_server=redis()
+redis_server=redis.Redis()
 n_scan_listeners = 4 # Minimum should be the number of concurrent scans expected
  
 class ScanListener(threading.Thread):
@@ -56,19 +57,19 @@ class ScanListener(threading.Thread):
             ]
 
         for pvname in pvnames:
-            epics_connect(pvname)
+            self.epics_connect(pvname)
 
         pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.NPTS', '.P1RA', '.CPT']
         for pvname in pvnames:
             for pref in [self.pref1d, self.pref2d]:
-                epics_connect(pref+pvname)
+                self.epics_connect(pref+pvname)
         
         for i in range(1, 71):
-            epics_connect(self.pref1d+'.D{:02d}NV')
-            epics_connect(self.pref1d+'.D{:02d}CA')
-            epics_connect(self.pref1d+'.D{:02d}DA')
+            self.epics_connect(self.pref1d+'.D{:02d}NV'.format(i))
+            self.epics_connect(self.pref1d+'.D{:02d}CA'.format(i))
+            self.epics_connect(self.pref1d+'.D{:02d}DA'.format(i))
 
-        print '{:2.2f} seconds elapsed connecting to {:d} PVs'.format(time.time()-then, len(pvs) )
+        print '{:2.2f} seconds elapsed connecting to {:d} PVs'.format(time.time()-then, len(self.pvs) )
 
     def scan_monitor(self, item):
 
@@ -128,7 +129,7 @@ class ScanListener(threading.Thread):
         for detector in cache['scan_dets']:
             cache['scan_data'].append({'pvname': detector, 'row': 0, 'value': sp.zeros((x_dim))})
 
-        redis_server.publish(self.ioc_name, cache)
+        self.redis.publish(self.ioc_name, cache)
         updates = {}
         n_loops = 0L
         then = time.time()
@@ -140,7 +141,7 @@ class ScanListener(threading.Thread):
             for detector in cache['scan_dets']:
                 updates[detector.split('.')[1][:3]+'_'+row] = self.pvs[detector].get()[:x_dim]
 
-            redis_server.publish(self.ioc_name, updates)
+            self.redis.publish(self.ioc_name, updates)
             n_loops+=1
             if then-time.time()>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
@@ -164,6 +165,9 @@ class ScanListener(threading.Thread):
 
         print '{:s} Disengaged'.format(self)
     
+    def work(self, item):
+        print item
+        print item['channel'], ":", item['data']
 
     def run(self):
         for item in self.pubsub.listen():
@@ -172,7 +176,7 @@ class ScanListener(threading.Thread):
                 print self, "unsubscribed and finished"
                 break
             else:
-                self.scan_monitor(item)
+                self.work(item)
 
 
 def epics_connect(pvname, auto_monitor=False, callback=None):
@@ -182,13 +186,14 @@ def epics_connect(pvname, auto_monitor=False, callback=None):
             p.add_callback(callback)
         epics.poll()
         if p.connected:
-            pvs[pvname] = p
+            return
         else:
             print '{:s} Not Connected'.format(pvname)
-        return p
+            return
 
 
 def cb(pvname, value, **kwargs):
+    print pvname, value
 	redis_server.publish('new_scan', {'pvname': pvname, 'value': value})
     
 
@@ -210,15 +215,18 @@ def signal_handler(signal, frame):
 def mainloop():
     # Register for SIGINT before entering infinite loop
     signal.signal(signal.SIGINT, signal_handler)
-
-    pvs = []
+    ipdb.set_trace()
     scan_listeners = {}
 
-    for beamline in scans.config.beamline_list:
+    for beamline in scans.config.ioc_names.keys():
         ioc_name = scans.config.ioc_names[beamline]
-        pvs.append(epics_connect(ioc_name+':ScanDim.VAL', auto_monitor=True, callback=cb))
-        scan_listeners[ioc_name] = ScanListener(redis_server, [ioc_name])
+        epics_connect(ioc_name+':ScanDim.VAL', auto_monitor=True, callback=cb)
+        scan_listeners[ioc_name] = ScanListener(redis_server, ioc_name)
         scan_listeners[ioc_name].start()
 
+    while True:
+        pass
 
 
+if __name__=='__main__':
+    mainloop()
