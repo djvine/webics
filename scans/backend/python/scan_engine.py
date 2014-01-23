@@ -2,6 +2,7 @@ import os
 import multiprocessing as mp
 import signal
 import sys
+import time
 
 # EPICS
 import epics
@@ -18,38 +19,35 @@ num_processes = mp.cpu_count()
 semaphore = {}
 
 
-def init_scan(ioc_name):
+def connect_pvs(ioc_name):
+	then = time.time()
 	pref1d = ioc_name+':scan1'
 	pref2d = ioc_name+':scan2'
 
-	# connect to PVs
-	epics_connect(pref1d+'.EXSC')
-	epics_connect(pref2d+'.EXSC')
+	pvs = {}
 
-	epics_connect(ioc_name+':ScanDim.VAL', auto_monitor=True, callback=cb)
-	# The following PVs are used to generate the scan_id
-    epics_connect(ioc_name+':saveData_fileSystem')
-    epics_connect(ioc_name+':saveData_subDir')
-    epics_connect(ioc_name+':saveData_baseName')
-    epics_connect(ioc_name+':saveData_scanNumber')
+	pvnames = [
+		ioc_name+':saveData_baseName',
+		ioc_name+':saveData_scanNumber',
+		ioc_name+':ScanDim',
+		pref2d+'.CPT'
+		]
 
-    # Monitoring the following PVs is the only way to reliably get the P1PA
-    # P1RA only gets updated to the correct value at the end of the scan line - don't use it.
-    for pref in [pref1d, pref2d]:
-	    epics_connect(pref+'.P1PV')
-	    epics_connect(pref+'.P1SP')
-	    epics_connect(pref+'.P1EP')
-	    epics_connect(pref+'.NPTS')
-	    epics_connect(pref+'.P1RA')
+	for pvname in pvnames:
+		pvs[pvname] = epics_connect(pvname)
 
-    # Get the current point and row number
-    epics_connect(pref2d+'.CPT')
+	pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.NPTS', '.P1RA']
+	for pvname in pvnames:
+		for pref in [pref1d, pref2d]:
+			pvs[pref+pvname] = epics_connect(pref+pvname)
+	
+	for i in range(1, 71):
+		pvs[pref1d+'.D{:02d}NV'] = epics_connect(pref1d+'.D{:02d}NV')
+		pvs[pref1d+'.D{:02d}CA'] = epics_connect(pref1d+'.D{:02d}CA')
 
-    # Get the detector PVs
-    for i in range(1,71):
-        epics_connect(pref1d+'.D{:02d}NV'.format(i))
-        epics_connect(pref1d+'.D{:02d}PV'.format(i))
-        epics_connect(pref1d+'.D{:02d}CA'.format(i))
+    print '{:2.2f} seconds elapsed connecting to {:d} PVs'.format(time.time()-then, len(pvs) )
+
+    return pvs
 
 def epics_connect(self, pvname, auto_monitor=False, callback=None):
     
@@ -72,8 +70,7 @@ def scan_control(*args, **kwargs):
     print args
     ioc_name = args[0].split(':')[0]
 
-    pref1d = ioc_name+':scan1'
-    pref2d = ioc_name+':scan2'
+    pvs = connect_pvs(ioc_name)
 
     scan_dim = args[1]
     if scan_dim == 1: # 1d scan w/no fluorescence detector
@@ -83,7 +80,8 @@ def scan_control(*args, **kwargs):
     elif scan_dim == 3: # 2d scan w/ fluorescence detector
         pass
 
-    scan_id = 
+    scan_id = pvs[ioc_name+':saveData_baseName'].get()+pvs[ioc_name+':saveData_scanNumber'].get()
+    
 
 def check_connectedness():
 	# Check if pvs are connected
@@ -104,8 +102,9 @@ def mainloop():
     # Register for SIGINT before entering infinite loop
     signal.signal(signal.SIGINT, signal_handler)
 
-	for beamline in scan.config.beamlines:
-		init_scan(beamline)
+    pvs = []
+	for ioc_name in scan.config.ioc_names.values():
+		pvs.append(epics_connect(ioc_name+':ScanDim.VAL', auto_monitor=True, callback=cb))
 
 	processes = [mp.Process(target=scan_control,
             		args=queue) for i in range(num_processes)]
