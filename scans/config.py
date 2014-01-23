@@ -1,5 +1,4 @@
-beamline_list = ['djv', 'djv1', 'djv2', 'djv3', 'djv4']
-
-ioc_name = {
+# SYNTAX beamline: ioc_name
+ioc_names = {
 	'djv': 'djv',
 }
