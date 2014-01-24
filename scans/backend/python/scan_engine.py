@@ -4,6 +4,7 @@ import sys
 import time
 import threading
 import ipdb
+import cPickle
 # EPICS
 import epics
 # django
@@ -26,7 +27,7 @@ class ScanListener(threading.Thread):
         self.pref1d = self.ioc_name+':scan1'
         self.pref2d = self.ioc_name+':scan2'
         self.pubsub = self.redis.pubsub()
-        self.pubsub.subscribe(ioc_name)
+        self.pubsub.subscribe('new_scan')
         self.pvs = {}
 
         self.connect_pvs()
@@ -39,13 +40,7 @@ class ScanListener(threading.Thread):
         p = epics.PV(pvname, auto_monitor=auto_monitor)
         if callback:
             p.add_callback(callback)
-        epics.poll()
-        if p.connected:
-            self.pvs[pvname] = p
-            return True
-        else:
-            print '{:s} Not Connected'.format(pvname)
-            return False
+        self.pvs[pvname] = p
             
     def connect_pvs(self):
         then = time.time()
@@ -76,31 +71,33 @@ class ScanListener(threading.Thread):
         # Runs once per scan.
         # Publish current scan data on redis channel and cache locally
         # At the conclusion of the scan store completed scan info to database
-
+        if type(item['data']) in [int, long]:
+            return
+        item['data'] = cPickle.loads(item['data'])
         print item['channel'], ":", item['data']['pvname']
 
         print '{:s} Engaged: Scan {:s}'.format(self, self.ioc_name)
 
         scan_dim_val = item['data']['value']
         if scan_dim_val == 1: # 1d scan w/no fluorescence detector
-            if self.pvs[self.pref1d+'.EXSC'] == 1:
+            if self.pvs[self.pref1d+'.EXSC'].get() == 1:
                 scan_dim = {'val': 1, 'xfd': False}
-                scan_outer_loop = pref1d
+                scan_outer_loop = self.pref1d
             else:
                 print 'scanH ignored'
                 return
         elif scan_dim_val == 2: 
-            if self.pvs[pref2d+'.EXSC'] == 1: # 2d scan w/no fluorescence detector
+            if self.pvs[pref2d+'.EXSC'].get() == 1: # 2d scan w/no fluorescence detector
                 scan_dim = {'val': 2, 'xfd': False}
-                scan_outer_loop = pref2d
+                scan_outer_loop = self.pref2d
             else: # 1d scan w/fluorescence detector
                 scan_dim = {'val': 1, 'xfd': True}
-                scan_outer_loop = pref1d
+                scan_outer_loop = self.pref1d
         elif scan_dim_val == 3: # 2d scan w/ fluorescence detector
             scan_dim = {'val': 2, 'xfd': True}
-            scan_outer_loop = pref2d
+            scan_outer_loop = self.pref2d
 
-        scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+self.pvs[self.ioc_name+':saveData_scanNumber'].get()
+        scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+'{:04d}'.format(self.pvs[self.ioc_name+':saveData_scanNumber'].get())
         cache = {}
 
         cache['scan'] = {'scan_id': scan_id, 'ts': timezone.now()}
@@ -109,23 +106,23 @@ class ScanListener(threading.Thread):
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': 0}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': 0})
-        cache['scan_dets'] = [ pref1d+':D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[pref1d+'.D{:02}NV'].get()==0]
-        cache['scan_metadata'] = [{'pvname': pref1d+'.P1PV', 'value': self.pvs[pref1d+'.P1PV'].get()},
-                                  {'pvname': pref2d+'.P1PV', 'value': self.pvs[pref2d+'.P1PV'].get()}]
+        cache['scan_dets'] = [ self.pref1d+':D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
+        cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
+                                  {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()}]
 
         if x_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[pref1d+'.P1SP'].get(), self.pvs[pref1d+'.P1EP'].get(), epics.caget(self.pvs[prefd+'P1PV'])
-            pref1d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(p1np-1)), sp.array([p1ep])), axis=0)+p1cp
+            p1sp, p1ep, p1cp = self.pvs[self.pref1d+'.P1SP'].get(), self.pvs[self.pref1d+'.P1EP'].get(), np.float(epics.caget(self.pref1d+'.P1PV'))
+            pref1d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(x_dim-1)), sp.array([p1ep])), axis=0)+p1cp
         else:
             pref1d_p1pa = sp.array([0])
         if y_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[pref2d+'.P1SP'].get(), self.pvs[pref2d+'.P1EP'].get(), epics.caget(self.pvs[pref2d+'P1PV'])
-            pref2d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(p1np-1)), sp.array([p1ep])), axis=0)+p1cp
+            p1sp, p1ep, p1cp = self.pvs[self.pref2d+'.P1SP'].get(), self.pvs[self.pref2d+'.P1EP'].get(), np.float(epics.caget(self.pref2d+'.P1PV'))
+            pref2d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(y_dim-1)), sp.array([p1ep])), axis=0)+p1cp
         else:
             pref2d_p1pa = sp.array([0])
 
-        cache['scan_data'] = [{'pvname': pref1d+'.P1PA', 'row': 0, 'value': pref1d_p1pa},
-                              {'pvname': pref2d+'.P1PA', 'row': 0, 'value': pref2d_p1pa}]
+        cache['scan_data'] = [{'pvname': self.pref1d+'.P1PA', 'row': 0, 'value': pref1d_p1pa},
+                              {'pvname': self.pref2d+'.P1PA', 'row': 0, 'value': pref2d_p1pa}]
         for detector in cache['scan_dets']:
             cache['scan_data'].append({'pvname': detector, 'row': 0, 'value': sp.zeros((x_dim))})
 
@@ -166,7 +163,6 @@ class ScanListener(threading.Thread):
         print '{:s} Disengaged'.format(self)
     
     def work(self, item):
-        print item
         print item['channel'], ":", item['data']
 
     def run(self):
@@ -176,15 +172,15 @@ class ScanListener(threading.Thread):
                 print self, "unsubscribed and finished"
                 break
             else:
-                self.work(item)
+                self.scan_monitor(item)
 
 
 def epics_connect(pvname, auto_monitor=False, callback=None):
-    
+        #epics.ca.poll()
         p = epics.PV(pvname, auto_monitor=auto_monitor)
         if callback:
             p.add_callback(callback)
-        epics.poll()
+        #epics.ca.poll()
         if p.connected:
             return
         else:
@@ -194,28 +190,31 @@ def epics_connect(pvname, auto_monitor=False, callback=None):
 
 def cb(pvname, value, **kwargs):
     print pvname, value
-	redis_server.publish('new_scan', {'pvname': pvname, 'value': value})
+    if value == 1:
+        redis_server.publish('new_scan', cPickle.dumps({'pvname': pvname, 'value': value}))
     
 
 def check_connectedness():
-	# Check if pvs are connected
-	# - Reconnect if possible
-	pass
+    # Check if pvs are connected
+    # - Reconnect if possible
+    pass
 
 
 def signal_handler(signal, frame):
     # catch ctrl-c and exit gracefully
-    
+    print 'exiting'
     # Add poison pills to kill processes
-    for i in range(n_scan_listeners):
-        queue.put((None,))
-
+    redis_server.publish['new_scan', 'KILL']
+    for ioc_name in scans.config.values():
+        redis_server.publish(ioc_name, 'KILL')
+        
     sys.exit(0)
 
 def mainloop():
+    #epics.poll()
+    #epics.ca.poll()
     # Register for SIGINT before entering infinite loop
     signal.signal(signal.SIGINT, signal_handler)
-    ipdb.set_trace()
     scan_listeners = {}
 
     for beamline in scans.config.ioc_names.keys():
