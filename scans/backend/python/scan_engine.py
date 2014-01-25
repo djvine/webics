@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import signal
 import sys
@@ -5,6 +6,7 @@ import time
 import threading
 import ipdb
 import cPickle
+import numpy as np
 # EPICS
 import epics
 # django
@@ -106,39 +108,44 @@ class ScanListener(threading.Thread):
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': 0}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': 0})
-        cache['scan_dets'] = [ self.pref1d+':D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
+        cache['scan_dets'] = [ self.pref1d+'.D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
         cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
                                   {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()}]
 
         if x_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[self.pref1d+'.P1SP'].get(), self.pvs[self.pref1d+'.P1EP'].get(), np.float(epics.caget(self.pref1d+'.P1PV'))
-            pref1d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(x_dim-1)), sp.array([p1ep])), axis=0)+p1cp
+            p1sp, p1ep, p1cp = self.pvs[self.pref1d+'.P1SP'].get(), self.pvs[self.pref1d+'.P1EP'].get(), np.float(epics.caget(epics.caget(self.pref1d+'.P1PV')))
+            pref1d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(x_dim-1)), np.array([p1ep])), axis=0)+p1cp
         else:
-            pref1d_p1pa = sp.array([0])
+            pref1d_p1pa = np.array([0])
         if y_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[self.pref2d+'.P1SP'].get(), self.pvs[self.pref2d+'.P1EP'].get(), np.float(epics.caget(self.pref2d+'.P1PV'))
-            pref2d_p1pa = np.concatenate((sp.arange(p1sp, p1ep, (p1ep-p1sp)/(y_dim-1)), sp.array([p1ep])), axis=0)+p1cp
+            p1sp, p1ep, p1cp = self.pvs[self.pref2d+'.P1SP'].get(), self.pvs[self.pref2d+'.P1EP'].get(), np.float(epics.caget(epics.caget(self.pref2d+'.P1PV')))
+            pref2d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(y_dim-1)), np.array([p1ep])), axis=0)+p1cp
         else:
-            pref2d_p1pa = sp.array([0])
+            pref2d_p1pa = np.array([0])
 
         cache['scan_data'] = [{'pvname': self.pref1d+'.P1PA', 'row': 0, 'value': pref1d_p1pa},
                               {'pvname': self.pref2d+'.P1PA', 'row': 0, 'value': pref2d_p1pa}]
         for detector in cache['scan_dets']:
-            cache['scan_data'].append({'pvname': detector, 'row': 0, 'value': sp.zeros((x_dim))})
+            cache['scan_data'].append({'pvname': detector, 'row': 0, 'value': np.zeros((x_dim))})
 
         self.redis.publish(self.ioc_name, cache)
         updates = {}
         n_loops = 0L
         then = time.time()
+
         while self.pvs[scan_outer_loop+'.EXSC'].get()>0: # Scan ongoing
             if scan_dim['val']==1:
                 row=0
             else:
                 row = self.pvs[pref2d+'.CPT']
+            old_updates = updates.copy()
             for detector in cache['scan_dets']:
-                updates[detector.split('.')[1][:3]+'_'+row] = self.pvs[detector].get()[:x_dim]
-
-            self.redis.publish(self.ioc_name, updates)
+                updates[detector.split('.')[1][:3]+'_{:d}'.format(row)] = self.pvs[detector].get()[:x_dim]
+            
+            if updates.keys() != old_updates.keys():
+                self.redis.publish(self.ioc_name, updates)
+            elif not all([np.array_equal(old_updates[key], updates[key]) for key in updates.keys()]):
+                self.redis.publish(self.ioc_name, updates)
             n_loops+=1
             if then-time.time()>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
@@ -148,17 +155,17 @@ class ScanListener(threading.Thread):
         # scan finished
         s = Scan(beamline=self.ioc_name, scan_id=scan_id, ts=timezone.now())
         s.save()
-        s.history.create(dim=0, completed=self.pvs[pref1d+'.CPT'].get(), requested=x_dim)
+        s.history.create(dim=0, completed=self.pvs[self.pref1d+'.CPT'].get(), requested=x_dim)
         if scan_dim['val']==2:
-            s.history.create(dim=1, completed=self.pvs[pref2d+'.CPT'].get(), requested=y_dim)
+            s.history.create(dim=1, completed=self.pvs[self.pref2d+'.CPT'].get(), requested=y_dim)
         for detector in cache['scan_dets']:
-            s.detectors.create(active=detector.split('.')[1][:3])
+            s.detectors.create(active=detector.split('.')[1][1:3])
         for entry in cache['scan_metadata']:
             s.metadata.create(pvname=entry['pvname'], value=entry['value'])
-        s.data.create(pvname=pref1d+'.P1PA', row=0, value=pref1d_p1pa)
-        s.data.create(pvname=pref2d+'.P1PA', row=0, value=pref2d_p1pa)
+        s.data.create(pvname=self.pref1d+'.P1PA', row=0, value=pref1d_p1pa)
+        s.data.create(pvname=self.pref2d+'.P1PA', row=0, value=pref2d_p1pa)
         for entry in updates.keys():
-            s.data.create(pvname=entry.split('_')[0], row=int(entry.split('_')[1]), value=updates[entry])
+            s.data.create(pvname=entry.split('_')[0], row=int(entry.split('_')[1]), value=cPickle.dumps(updates[entry]))
 
         print '{:s} Disengaged'.format(self)
     
@@ -211,8 +218,6 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def mainloop():
-    #epics.poll()
-    #epics.ca.poll()
     # Register for SIGINT before entering infinite loop
     signal.signal(signal.SIGINT, signal_handler)
     scan_listeners = {}
