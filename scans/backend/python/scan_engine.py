@@ -7,18 +7,19 @@ import threading
 import ipdb
 import cPickle
 import numpy as np
+import json
+import datetime
 # EPICS
 import epics
 # django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings'
 import django
-from django.utils import timezone
 import scans.config
 from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata
 # redis
 import redis
 
-redis_server=redis.Redis()
+redis_server=redis.Redis(host='localhost', port=6379, db=0)
 n_scan_listeners = 4 # Minimum should be the number of concurrent scans expected
  
 class ScanListener(threading.Thread):
@@ -56,7 +57,7 @@ class ScanListener(threading.Thread):
         for pvname in pvnames:
             self.epics_connect(pvname)
 
-        pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.NPTS', '.P1RA', '.CPT']
+        pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.P1SI', '.P1PA', '.NPTS', '.P1RA', '.CPT']
         for pvname in pvnames:
             for pref in [self.pref1d, self.pref2d]:
                 self.epics_connect(pref+pvname)
@@ -89,7 +90,7 @@ class ScanListener(threading.Thread):
                 print 'scanH ignored'
                 return
         elif scan_dim_val == 2: 
-            if self.pvs[pref2d+'.EXSC'].get() == 1: # 2d scan w/no fluorescence detector
+            if self.pvs[self.pref2d+'.EXSC'].get() == 1: # 2d scan w/no fluorescence detector
                 scan_dim = {'val': 2, 'xfd': False}
                 scan_outer_loop = self.pref2d
             else: # 1d scan w/fluorescence detector
@@ -102,15 +103,13 @@ class ScanListener(threading.Thread):
         scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+'{:04d}'.format(self.pvs[self.ioc_name+':saveData_scanNumber'].get())
         cache = {}
 
-        cache['scan'] = {'scan_id': scan_id, 'ts': timezone.now()}
+        cache['scan'] = {'scan_id': scan_id, 'ts': datetime.datetime.now()}
         x_dim = self.pvs[self.pref1d+'.NPTS'].get()
         y_dim = self.pvs[self.pref2d+'.NPTS'].get()
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': 0}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': 0})
         cache['scan_dets'] = [ self.pref1d+'.D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
-        cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
-                                  {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()}]
 
         if x_dim>1:
             p1sp, p1ep, p1cp = self.pvs[self.pref1d+'.P1SP'].get(), self.pvs[self.pref1d+'.P1EP'].get(), np.float(epics.caget(epics.caget(self.pref1d+'.P1PV')))
@@ -123,13 +122,27 @@ class ScanListener(threading.Thread):
         else:
             pref2d_p1pa = np.array([0])
 
-        cache['scan_data'] = [{'pvname': self.pref1d+'.P1PA', 'row': 0, 'value': pref1d_p1pa},
-                              {'pvname': self.pref2d+'.P1PA', 'row': 0, 'value': pref2d_p1pa}]
-        for detector in cache['scan_dets']:
-            cache['scan_data'].append({'pvname': detector, 'row': 0, 'value': np.zeros((x_dim))})
+        cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
+                                  {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()},
+                                  {'pvname': self.pref2d+'.P1PA', 'value': list(pref2d_p1pa)}]
 
-        self.redis.publish(self.ioc_name, cache)
-        updates = {}
+        cache['scan_data'] = [{'pvname': self.pref1d+'.P1PA', 'row': 0, 'value': list(pref1d_p1pa)}]
+        cache['scan_data'] = []
+        for detector in cache['scan_dets']:
+            cache['scan_data'].append({
+                'key': detector.split('.')[1][:3]+'_0',
+                'values': [ {
+                    'name': detector.split('.')[1][:3]+'_0', 
+                    'x': x, 
+                    'y': 0.0
+                    } for x in pref1d_p1pa]
+                })
+
+        json_cache = cache.copy()
+        json_cache['scan']['ts'] = json_cache['scan']['ts'].strftime("%a %d %b %H:%M")
+
+        self.redis.publish(self.ioc_name, json.dumps({'new_scan': json_cache}))
+        updates = []
         n_loops = 0L
         then = time.time()
 
@@ -137,15 +150,24 @@ class ScanListener(threading.Thread):
             if scan_dim['val']==1:
                 row=0
             else:
-                row = self.pvs[pref2d+'.CPT']
-            old_updates = updates.copy()
+                row = self.pvs[self.pref2d+'.CPT'].get()
+            old_updates = list(updates)
+            if row==0:
+                pref1d_p1pa = self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]
+                if not np.array_equal(np.zeros(x_dim), self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]):
+                    pref1d_p1pa = self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]
             for detector in cache['scan_dets']:
-                updates[detector.split('.')[1][:3]+'_{:d}'.format(row)] = self.pvs[detector].get()[:x_dim]
-            
-            if updates.keys() != old_updates.keys():
-                self.redis.publish(self.ioc_name, updates)
-            elif not all([np.array_equal(old_updates[key], updates[key]) for key in updates.keys()]):
-                self.redis.publish(self.ioc_name, updates)
+                updates.append({
+                    'key': detector.split('.')[1][:3]+'_{:d}'.format(row),
+                    'values': [{
+                            'name': detector.split('.')[1][:3]+'_{:d}'.format(row),
+                            'x': pref1d_p1pa[i],
+                            'y': np.float(val)
+                        } for i, val in enumerate(self.pvs[detector].get()[:x_dim])]
+                    })
+    
+            if (old_updates != updates):
+                self.redis.publish(self.ioc_name, json.dumps({'update_data': updates}))
             n_loops+=1
             if then-time.time()>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
@@ -153,7 +175,7 @@ class ScanListener(threading.Thread):
                 then = time.time()
 
         # scan finished
-        s = Scan(beamline=self.ioc_name, scan_id=scan_id, ts=timezone.now())
+        s = Scan(beamline=self.ioc_name, scan_id=scan_id, ts=cache['scan']['ts'])
         s.save()
         s.history.create(dim=0, completed=self.pvs[self.pref1d+'.CPT'].get(), requested=x_dim)
         if scan_dim['val']==2:
@@ -194,25 +216,17 @@ def epics_connect(pvname, auto_monitor=False, callback=None):
             print '{:s} Not Connected'.format(pvname)
             return
 
-
 def cb(pvname, value, **kwargs):
     print pvname, value
-    if value == 1:
+    if value > 0:
         redis_server.publish('new_scan', cPickle.dumps({'pvname': pvname, 'value': value}))
-    
-
-def check_connectedness():
-    # Check if pvs are connected
-    # - Reconnect if possible
-    pass
-
 
 def signal_handler(signal, frame):
     # catch ctrl-c and exit gracefully
     print 'exiting'
     # Add poison pills to kill processes
-    redis_server.publish['new_scan', 'KILL']
-    for ioc_name in scans.config.values():
+    redis_server.publish('new_scan', 'KILL')
+    for ioc_name in scans.config.ioc_names.values():
         redis_server.publish(ioc_name, 'KILL')
         
     sys.exit(0)
@@ -229,8 +243,7 @@ def mainloop():
         scan_listeners[ioc_name].start()
 
     while True:
-        pass
-
+        time.sleep(10.0)
 
 if __name__=='__main__':
     mainloop()
