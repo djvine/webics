@@ -6,7 +6,6 @@
 
 {% block extra_head %}
 {% load staticfiles %}
-<link href="{% static 'webics/d3/d3js.css' %}" rel="stylesheet">
 <script src="{% static 'webics/d3/d3.v3.js' %}"></script>
 <script src="{% static 'webics/js/socket.io.js' %}"></script>
 {% endblock %}
@@ -16,9 +15,16 @@
 <br>
 <div class='col-lg-12' id='chart'></div>
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script src="{% static 'webics/d3/plot.js' %}"></script>
+<script src="{% static 'webics/js/sample_data.js' %}"></script>
+<link href="{% static 'webics/js/line_plot.css' %}" rel="stylesheet">
+<script src="{% static 'webics/js/line_plot.js' %}"></script>
+<div id="line_plot" class="lPlot" style="position:relative;width:100%;height:400px"></div>
 <script type="text/javascript"> 
-   var beamline = "{{ active_tab }}"
+	var beamline = "{{ active_tab }}"
+
+	// create graph now that we've added presentation config
+	var l1 = new LinePlot({containerId: 'line_plot', data: data1});
+	
 </script>
 <script src="{% static 'webics/js/client.js' %}"></script>
 <div class='col-lg-4' >

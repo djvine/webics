@@ -271,8 +271,12 @@ var createChart = function(data, container, margin){
 		
 		//update active buttons
 		//update_active_detectors(data);
-		d3.selectAll(".scan").remove()
-		console.log(data);
+		g_scan = document.getElementsByClassName('scan');
+		for (var i = 0; i < g_scan.length; i++) {
+			g_scan[i].parentElement.removeChild(g_scan[i]);
+		};
+		//d3.selectAll(".scan").remove()
+		
 		svg.selectAll(".scan")
 	      .data(data, function(d) { return d.key; })
 	      .enter()
@@ -284,7 +288,7 @@ var createChart = function(data, container, margin){
 	      .attr("d", function(d) { return line(d.values); })
 	      .style("stroke", function(d) { return color(d.key); })
 	      .style("fill","None");
-	    console.log('here');
+	    
 		// redraw (with transition)
 		redrawAxes(true, data);
 		
@@ -394,7 +398,6 @@ var createChart = function(data, container, margin){
 	var redrawAxes = function(withTransition, data) {
 		initY(data);
 		initX(data);
-		console.log('here now');
 		if(withTransition) {
 			// slide x-axis to updated location
 			svg.selectAll("g #xaxis.axis").transition()
@@ -453,13 +456,33 @@ var createChart = function(data, container, margin){
 		var numAxisLabels = 6;
 		var numAxisLabelsPowerScale = 6;
 		var numAxisLabelsLinearScale = 10;
+		var d_min = 0.;
+		var d_max = 0.;
+		for (var i = 0; i<data.length; i++) {
+			for (var j = 0;  j< data[i].values.length; j++) {
+				if (i==0){
+					var d_min = data[i].values[j].y;
+					var d_max = data[i].values[j].y;
+				}
+				else {
+					if (data[i].values[j].y<d_min){
+						d_min = data[i].values[j].y;
+					}
+					if (data[i].values[j].y>d_max){
+						d_max = data[i].values[j].y;
+					}
+				}
+			};
+		};
+		if (d_min==d_max){
+			d_min--;
+			d_max++;
+		}
+
 		if(yScale == 'pow') {
 			yLeft = d3.scale.pow()
 					.exponent(0.3)
-					.domain([
-						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
-	           			])
+					.domain([d_max. d_min])
 					.range([margin.bottom, h-margin.top])
 					.nice();	
 			numAxisLabels = numAxisLabelsPowerScale;
@@ -467,18 +490,12 @@ var createChart = function(data, container, margin){
 			// we can't have 0 so will represent 0 with a very small number
 			// 0.1 works to represent 0, 0.01 breaks the tickFormatter
 			yLeft = d3.scale.log()
-				.domain([
-						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
-	           			])
+				.domain([d_max, d_min])
 				.range([margin.bottom, h-margin.top])
 				.nice();	
 		} else if(yScale == 'linear') {
 			yLeft = d3.scale.linear()
-			.domain([
-						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
-	           			])
+			.domain([d_max, d_min])
 			.range([margin.bottom, h-margin.top])
 			.nice();
 			numAxisLabels = numAxisLabelsLinearScale;
