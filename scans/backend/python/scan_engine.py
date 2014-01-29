@@ -100,7 +100,7 @@ class ScanListener(threading.Thread):
             scan_dim = {'val': 2, 'xfd': True}
             scan_outer_loop = self.pref2d
 
-        scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+'{:04d}'.format(self.pvs[self.ioc_name+':saveData_scanNumber'].get())
+        scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+'{:04d}'.format(self.pvs[self.ioc_name+':saveData_scanNumber'].get()-1)
         cache = {}
 
         cache['scan'] = {'scan_id': scan_id, 'ts': datetime.datetime.now()}
@@ -112,62 +112,83 @@ class ScanListener(threading.Thread):
         cache['scan_dets'] = [ self.pref1d+'.D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
 
         if x_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[self.pref1d+'.P1SP'].get(), self.pvs[self.pref1d+'.P1EP'].get(), np.float(epics.caget(epics.caget(self.pref1d+'.P1PV')))
-            pref1d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(x_dim-1)), np.array([p1ep])), axis=0)+p1cp
+            p1sp = self.pvs[self.pref1d+'.P1SP'].get()
+            p1ep = self.pvs[self.pref1d+'.P1EP'].get()
+            try:
+                p1cp = np.float(epics.caget(epics.caget(self.pref1d+'.P1PV')))
+            except: # scan1.P1PV is not defined
+                p1cp = 0.0
+            try:
+                pref1d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(x_dim-1)), np.array([p1ep])), axis=0)+p1cp
+            except ZeroDivisionError: # if p1sp, p1ep initialise to 0
+                pref1d_p1pa = np.arange(x_dim)
+
         else:
-            pref1d_p1pa = np.array([0])
+            pref1d_p1pa = np.array([0.0])
         if y_dim>1:
-            p1sp, p1ep, p1cp = self.pvs[self.pref2d+'.P1SP'].get(), self.pvs[self.pref2d+'.P1EP'].get(), np.float(epics.caget(epics.caget(self.pref2d+'.P1PV')))
-            pref2d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(y_dim-1)), np.array([p1ep])), axis=0)+p1cp
+            p1sp = self.pvs[self.pref2d+'.P1SP'].get()
+            p1ep = self.pvs[self.pref2d+'.P1EP'].get()
+            try:
+                p1cp = np.float(epics.caget(epics.caget(self.pref2d+'.P1PV')))
+            except: # scan2.P1PV is not defined:
+                p1cp = 0.0
+            try:
+                pref2d_p1pa = np.concatenate((np.arange(p1sp, p1ep, (p1ep-p1sp)/(y_dim-1)), np.array([p1ep])), axis=0)+p1cp
+            except ZeroDivisionError:
+                pref2d_p1pa = np.arange(y_dim)
         else:
-            pref2d_p1pa = np.array([0])
+            pref2d_p1pa = np.array([0.0])
 
         cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
                                   {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()},
-                                  {'pvname': self.pref2d+'.P1PA', 'value': list(pref2d_p1pa)}]
-
-        cache['scan_data'] = [{'pvname': self.pref1d+'.P1PA', 'row': 0, 'value': list(pref1d_p1pa)}]
-        cache['scan_data'] = []
+                                  {'pvname': self.pref2d+'.P1PA', 'value': pref2d_p1pa.tolist()}]
+        json_cache = cache.copy()
+        cache['scan_data'] = {}
+        json_cache['scan_data'] = []
         for detector in cache['scan_dets']:
-            cache['scan_data'].append({
-                'key': detector.split('.')[1][:3]+'_0',
+            cache['scan_data'][detector.split('.')[1][:3]+'_0'] = {'pvname': detector, 'row': 0, 'value': np.zeros((x_dim))}
+            json_cache['scan_data'].append({
+                'key': detector.split('.')[1][:3],
                 'values': [ {
-                    'name': detector.split('.')[1][:3]+'_0', 
+                    'name': detector.split('.')[1][:3],
+                    'row': 0,
                     'x': x, 
                     'y': 0.0
-                    } for x in pref1d_p1pa]
+                    } for x in pref1d_p1pa.tolist()]
                 })
 
-        json_cache = cache.copy()
         json_cache['scan']['ts'] = json_cache['scan']['ts'].strftime("%a %d %b %H:%M")
-
         self.redis.publish(self.ioc_name, json.dumps({'new_scan': json_cache}))
-        updates = []
+        updates = {}
         n_loops = 0L
         then = time.time()
+        cpt = -1
 
         while self.pvs[scan_outer_loop+'.EXSC'].get()>0: # Scan ongoing
             if scan_dim['val']==1:
                 row=0
             else:
                 row = self.pvs[self.pref2d+'.CPT'].get()
-            old_updates = list(updates)
-            if row==0:
-                pref1d_p1pa = self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]
-                if not np.array_equal(np.zeros(x_dim), self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]):
-                    pref1d_p1pa = self.pvs[self.pref1d+'.P1PA'].get()[:x_dim]
-            for detector in cache['scan_dets']:
-                updates.append({
-                    'key': detector.split('.')[1][:3]+'_{:d}'.format(row),
-                    'values': [{
-                            'name': detector.split('.')[1][:3]+'_{:d}'.format(row),
-                            'x': pref1d_p1pa[i],
-                            'y': np.float(val)
-                        } for i, val in enumerate(self.pvs[detector].get()[:x_dim])]
-                    })
-    
-            if (old_updates != updates):
-                self.redis.publish(self.ioc_name, json.dumps({'update_data': updates}))
+            
+            new_cpt = self.pvs[self.pref1d+'.CPT'].get()
+            if cpt != new_cpt:
+                cpt = new_cpt
+                for detector in cache['scan_dets']:
+                    cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
+                                                'row': row, 'value': self.pvs[detector].get()[:x_dim]}                    
+
+                    updates[detector.split('.')[1][:3]+'_{:d}'.format(row)] = {
+                        'key': detector.split('.')[1][:3],
+                        'values': [ {
+                            'name': detector.split('.')[1][:3],
+                            'row': row,
+                            'x': pref1d_p1pa[i], 
+                            'y': y
+                            } for i, y in enumerate(cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist())]
+                        }
+
+                self.redis.publish(self.ioc_name, json.dumps({'update_scan': [entry for entry in updates.values()]}))
+
             n_loops+=1
             if then-time.time()>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
@@ -186,13 +207,16 @@ class ScanListener(threading.Thread):
             s.metadata.create(pvname=entry['pvname'], value=entry['value'])
         s.data.create(pvname=self.pref1d+'.P1PA', row=0, value=pref1d_p1pa)
         s.data.create(pvname=self.pref2d+'.P1PA', row=0, value=pref2d_p1pa)
-        for entry in updates.keys():
-            s.data.create(pvname=entry.split('_')[0], row=int(entry.split('_')[1]), value=cPickle.dumps(updates[entry]))
+        for val in cache['scan_data'].values():
+            s.data.create(pvname=val['pvname'], row=val['row'], value=cPickle.dumps(val['value']))
+
+        cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': self.pvs[self.pref1d+'.CPT'].get()}]
+        if scan_dim['val'] == 2:
+            cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': self.pvs[self.pref2d+'.CPT'].get()})
+        json_cache = {'scan': cache['scan'], 'scan_hist': cache['scan_hist']}
+        self.redis.publish(self.ioc_name, json.dumps({'scan_completed': json_cache}))
 
         print '{:s} Disengaged'.format(self)
-    
-    def work(self, item):
-        print item['channel'], ":", item['data']
 
     def run(self):
         for item in self.pubsub.listen():

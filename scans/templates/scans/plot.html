@@ -20,7 +20,7 @@
 <script type="text/javascript"> 
    var beamline = "{{ active_tab }}"
 </script>
-<script src="{% static 'webics/js/socket.js' %}"></script>
+<script src="{% static 'webics/js/client.js' %}"></script>
 <div class='col-lg-4' >
 	<h4>Scan History</h4>
 	<table id="scan_history" class="table-condensed table-striped">
@@ -39,7 +39,7 @@
 			{% for scan in recent_scans %}
 			<tr>
 				<td><button type="button" class="scan_sel btn {% if forloop.first %}btn-success{% else %}btn-primary{% endif %} btn-xs" id="{{ scan.scan_id }}"><span class="glyphicon glyphicon-play"></span></button></td>
-				<td>{{ scan.ts|date:"D d M H:m" }}</td>
+				<td>{{ scan.ts|date:"D d M H:i" }}</td>
 				<td>{{ scan.scan_id }}</td>
 				{% for hist in scan.history.all %}
 				<td>{{ hist.completed }}/{{ hist.requested }}</td>

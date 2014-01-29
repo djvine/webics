@@ -19,3 +19,9 @@ body {
     height:200px;
     overflow:auto;
 }
+.highlight{
+    background-color: lightgreen;
+}
+.table-striped tbody tr.highlight:nth-child(odd) td {
+    background-color: lightgreen;
+}

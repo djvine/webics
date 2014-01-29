@@ -249,11 +249,13 @@ var createChart = function(data, container, margin){
 	}
 
 	this.update_active_detectors = function(data){
+
 		selected_buttons = [];
 		for (var i=0;i<70;i++)
 		{ 
 			document.getElementById("D"+zeroPad(i,2)).className = "btn btn-primary btn-xs disabled";
 		}
+		
 		data.forEach(function(element, index, array){
 			if (index==0){
 				document.getElementById(element.key).className = "btn btn-success btn-xs";
@@ -269,9 +271,8 @@ var createChart = function(data, container, margin){
 		
 		//update active buttons
 		//update_active_detectors(data);
-
 		d3.selectAll(".scan").remove()
-
+		console.log(data);
 		svg.selectAll(".scan")
 	      .data(data, function(d) { return d.key; })
 	      .enter()
@@ -283,15 +284,9 @@ var createChart = function(data, container, margin){
 	      .attr("d", function(d) { return line(d.values); })
 	      .style("stroke", function(d) { return color(d.key); })
 	      .style("fill","None");
-	     /*
-	    d3.select("#chart")
-	    	.selectAll("path.line")
-			.data(data, function(d) { return d.key; })
-			.filter(function(d) { return (selected_buttons.indexOf(d.key) != -1) })
-			.attr("d", function(d) { return line(d.values); });
-		*/
+	    console.log('here');
 		// redraw (with transition)
-		redrawAxes(true);
+		redrawAxes(true, data);
 		
 
 		
@@ -396,10 +391,10 @@ var createChart = function(data, container, margin){
 		$(svg).trigger('LineGraph:configModification')
 	}
 
-	var redrawAxes = function(withTransition) {
-		initY();
-		initX();
-		
+	var redrawAxes = function(withTransition, data) {
+		initY(data);
+		initX(data);
+		console.log('here now');
 		if(withTransition) {
 			// slide x-axis to updated location
 			svg.selectAll("g #xaxis.axis").transition()
@@ -453,7 +448,7 @@ var createChart = function(data, container, margin){
 	 * Allow re-initializing the y function at any time.
 	 *  - it will properly determine what scale is being used based on last user choice (via public switchScale methods)
 	 */
-	var initY = function() {
+	var initY = function(data) {
 
 		var numAxisLabels = 6;
 		var numAxisLabelsPowerScale = 6;
@@ -462,8 +457,8 @@ var createChart = function(data, container, margin){
 			yLeft = d3.scale.pow()
 					.exponent(0.3)
 					.domain([
-						d3.max(dataset, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(dataset, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
+						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
+	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
 	           			])
 					.range([margin.bottom, h-margin.top])
 					.nice();	
@@ -473,16 +468,16 @@ var createChart = function(data, container, margin){
 			// 0.1 works to represent 0, 0.01 breaks the tickFormatter
 			yLeft = d3.scale.log()
 				.domain([
-						d3.max(dataset, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(dataset, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
+						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
+	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
 	           			])
 				.range([margin.bottom, h-margin.top])
 				.nice();	
 		} else if(yScale == 'linear') {
 			yLeft = d3.scale.linear()
 			.domain([
-						d3.max(dataset, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
-	           			d3.min(dataset, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
+						d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.y; }); }), 
+	           			d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.y; }); })
 	           			])
 			.range([margin.bottom, h-margin.top])
 			.nice();
@@ -499,13 +494,13 @@ var createChart = function(data, container, margin){
 	/*
 	 * Allow re-initializing the x function at any time.
 	 */
-	var initX = function() {
+	var initX = function(data) {
 		// X scale starts at epoch time 1335035400000, ends at 1335294600000 with 300s increments
 		xScale = d3.scale.linear()
                      .range([margin.left, w-margin.right])
                      .domain([
-                     	d3.min(dataset, function(d) { return d3.min(d.values, function (d) { return d.x; }); }), 
-	           			d3.max(dataset, function(d) { return d3.max(d.values, function (d) { return d.x; }); })
+                     	d3.min(data, function(d) { return d3.min(d.values, function (d) { return d.x; }); }), 
+	           			d3.max(data, function(d) { return d3.max(d.values, function (d) { return d.x; }); })
 	           			])
                      .nice();
 
@@ -547,6 +542,7 @@ var createChart = function(data, container, margin){
 }
 
 ch = new createChart(dataset, "#chart", margin);
+/*
 current_dataset = 0;
 setInterval(function() {
 		if (current_dataset==0){
@@ -558,7 +554,7 @@ setInterval(function() {
 			current_dataset=0;
 		}
 	}, 2500);
-
+*/
 $( document ).ready(function() {
    	ch.update_active_detectors(dataset);
    	ch.updateData(dataset);

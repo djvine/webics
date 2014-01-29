@@ -57,6 +57,15 @@ chat.on("connection", function (client) {
     });
 });
 
+/*
+Scan listens for:
+    * room
+    * scan_select
+Scan emits:
+    * new_scan
+    * update_scan
+    * scan_completed
+*/
 
 scan.on("connection", function(client) {
     //Grab message from Redis and send to client
@@ -72,10 +81,18 @@ scan.on("connection", function(client) {
         sub.on('message', function(channel, message){
             json_ob = JSON.parse(message);
             if (json_ob.hasOwnProperty('new_scan')){
-                client.emit('new_data', message);
+                if (get_realtime[client.id]==1) {
+                    client.emit('new_scan', json_ob);
+                }
+                else {
+                    client.emit('update_scan_history', {'new_scan': {'scan': json_ob['scan'], 'scan_hist': json_ob['scan_hist']}})
+                }
             }
-            else if (json_ob.hasOwnProperty('update_data')){
-                client.emit("update_data", message);
+            else if (json_ob.hasOwnProperty('update_scan')){
+                client.emit("update_scan", json_ob);
+            }
+            else if (json_ob.hasOwnProperty('scan_completed')){
+                client.emit('scan_completed', json_ob)
             }
         });
 
@@ -83,7 +100,7 @@ scan.on("connection", function(client) {
 
     client.on('scan_select', function (beamline, scan_id){
         // Asking for latest scan?
-        client.emit('update', 'getting new data');
+        client.emit('update', 'client requested historical data');
     });
 
 
