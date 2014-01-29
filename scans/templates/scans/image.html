@@ -1,0 +1,69 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block extra_head %}
+{% load staticfiles %}
+<link href="{% static 'webics/d3/d3js.css' %}" rel="stylesheet">
+<script src="{% static 'webics/d3/d3.v3.js' %}"></script>
+<script src="{% static 'webics/js/socket.io.js' %}"></script>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="{% static 'webics/js/image.js' %}"></script>
+<style>
+
+body {
+  position: relative;
+}
+
+svg,
+canvas {
+  position: absolute;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+line.line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+rect.rect {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+text.text {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+.axis path {
+  display: none;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+{% load staticfiles %}
+
+
+
+{% endblock %}
+
+
+

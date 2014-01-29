@@ -37,11 +37,11 @@ def plots(request, beamline):
                'scan_history': scan_history, 'dets': dets}
     return render(request, 'scans/plot.html', context)
 
-def images(request):
+def images(request, beamline):
     beamlines = [{'beamline': beamline} for beamline in scans.config.ioc_names.keys()]
     recent_scans = Scan.objects.values('scan_id').distinct().order_by('-ts')[:50]
 
     context = {'title': 'Webics Home', 'beamlines': beamlines, 'active_tab': "", 'recent_scans': recent_scans}
-    return render(request, 'scans/home.html', context)
+    return render(request, 'scans/image.html', context)
 
 
