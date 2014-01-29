@@ -24,6 +24,17 @@
 
 	// create graph now that we've added presentation config
 	var l1 = new LinePlot({containerId: 'line_plot', data: data1});
+	var which_data = 0;
+	setInterval(function(){
+		if (which_data==0){
+			which_data=1;
+			l1.updateData(data2, 0);
+		}
+		else{
+			which_data=0;
+			l1.updateData(data1, 0);
+		}
+	}, 5000)
 	
 </script>
 <script src="{% static 'webics/js/client.js' %}"></script>

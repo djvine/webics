@@ -22,6 +22,66 @@ function LinePlot(argsMap){
 	/* *************************************************************** */
 	/* public methods */
 	/* *************************************************************** */
+	var self = this;
+
+	/**
+	 * This does a full refresh of the data:
+	 * - x-axis will slide to new range
+	 * - lines will change in place
+	 */
+	this.updateData = function(newData, row) {
+		// data is being replaced, not appended so we re-assign 'data'
+		data = processDataMap(newData, row);
+		// and then we rebind data.values to the lines
+	    graph.selectAll("g .lines path").data(data.values)
+		
+		// redraw (with transition)
+		redrawAxes(true);
+		// transition is 'false' for lines because the transition is really weird when the data significantly changes
+		// such as going from 700 points to 150 to 400
+		// and because of that we rebind the data anyways which doesn't work with transitions very well at all
+		redrawLines(false);
+		
+		handleDataUpdate();
+		
+		// fire an event that data was updated
+		$(container).trigger('LineGraph:dataModification')
+	}
+
+	
+	this.switchToPowerScale = function() {
+		yScale = 'pow';
+		redrawAxes(true);
+		redrawLines(true);
+		
+		// fire an event that config was changed
+		$(container).trigger('LineGraph:configModification')
+	}
+
+	this.switchToLogScale = function() {
+		yScale = 'log';
+		redrawAxes(true);
+		redrawLines(true);
+		
+		// fire an event that config was changed
+		$(container).trigger('LineGraph:configModification')
+	}
+
+	this.switchToLinearScale = function() {
+		yScale = 'linear';
+		redrawAxes(true);		
+		redrawLines(true);
+		
+		// fire an event that config was changed
+		$(container).trigger('LineGraph:configModification')
+	}
+	
+	/**
+	 * Return the current scale value: pow, log or linear
+	 */
+	this.getScale = function() {
+		return yScale;
+	}
 
 	/* *************************************************************** */
 	/* private variables */
@@ -101,26 +161,27 @@ function LinePlot(argsMap){
 			dataValues.push(v.values)
 		})
 		var displayNames = [];
-		dataValues.forEach(function (v, i){
-			displayNames[i] = dataValues[i].name;
+		dataMap[row].forEach(function (v, i){
+			displayNames[i] = v.name;
 		})
+
 		var numAxisLabelsPowerScale = getOptionalVar(dataMap, 'numAxisLabelsPowerScale', 6); 
 		var numAxisLabelsLinearScale = getOptionalVar(dataMap, 'numAxisLabelsLinearScale', 6); 
 
-		var colors = ["acqua", "acquamarine", "black", "blue", "blueviolet",
+		var colors = ["tomato", "royalblue", "aqua", "greenyellow", "aquamarine", "black", "blue", "blueviolet",
 		  "brown", "cadetblue", "chatreuse", "chocolate", "coral",
 		  "cornflowerblue", "crimson", "cyan", "darkblue", "darkcyan",
 		  "darkgoldenrod", "darkgray", "darkgreen", "darkmagenta", "darkolivegreen",
 		  "darkorange", "darkorchid", "darkred", "darkslateblue", "darkslategray",
 		  "firebrick", "forestgreen", "fuchsia", "gold", "green",
-		  "hotpink", "goldenrod", "gray", "greenyellow", "indianred",
+		  "hotpink", "goldenrod", "gray",  "indianred",
 		  "indigo", "lawngreen", "lightblue", "lightcoral", "lightgreen",
 		  "lightpink", "lightsalmon", "lightseagreen", "lightskyblue", "lightslategray",
 		  "lime", "magenta", "maroon", "mediumblue", "mediumorchid",
 		  "navy", "olive", "olivedrab", "orange", "orangered",
 		  "orchid", "palegreen", "palevioletred", "peru", "purple",
-		  "red", "royalblue", "saddlebrown", "seagreen", "slateblue",
-		  "slategray", "yellow", "teal", "tomato", "violet"]
+		  "red",  "saddlebrown", "seagreen", "slateblue",
+		  "slategray", "yellow", "teal", "violet"]
 		
 		var maxValues = [];
 		var minValues = [];
@@ -131,17 +192,17 @@ function LinePlot(argsMap){
 		if(rounding.length == 0) {
 			displayNames.forEach(function (v, i) {
 				// set the default to 0 decimals
-				rounding[i] = 0;
+				rounding[i] = 1;
 			})
 		}
-
 		dataValues.forEach(function (v, i) {
-			minValues[i] = d3.min(dataValues[i].values)
-			maxValues[i] = d3.max(dataValues[i].values)
+			minValues[i] = d3.min(v)
+			maxValues[i] = d3.max(v)
 		})
 		
 		return {
-			"positioner_axis": positioner_axis,
+			"positioner_axis": positioner_axis.values,
+			"x_axis_label": positioner_axis.name,
 			"values" : dataValues,
 			"displayNames": displayNames,
 			"colors": colors,
@@ -150,6 +211,59 @@ function LinePlot(argsMap){
 			"rounding" : rounding,
 			"numAxisLabelsLinearScale": numAxisLabelsLinearScale,
 			"numAxisLabelsPowerScale": numAxisLabelsPowerScale
+		}
+	}
+
+	var redrawAxes = function(withTransition) {
+		initY();
+		initX();
+		
+		if(withTransition) {
+			// slide x-axis to updated location
+			graph.selectAll("g .x.axis").transition()
+			.duration(transitionDuration)
+			.ease("linear")
+			.call(xAxis)				  
+		
+			// slide y-axis to updated location
+			graph.selectAll("g .y.axis.left").transition()
+			.duration(transitionDuration)
+			.ease("linear")
+			.call(yAxis)
+			
+		} else {
+			// slide x-axis to updated location
+			graph.selectAll("g .x.axis")
+			.call(xAxis)				  
+		
+			// slide y-axis to updated location
+			graph.selectAll("g .y.axis.left")
+			.call(yAxis)
+		}
+	}
+	
+	var redrawLines = function(withTransition) {
+		/**
+		* This is a hack to deal with the left/right axis.
+		*
+		* See createGraph for a larger comment explaining this. 
+		*
+		* Yes, it's ugly. If you can suggest a better solution please do.
+		*/
+		lineFunctionSeriesIndex  =-1;
+		
+		// redraw lines
+		if(withTransition) {
+			graph.selectAll("g .lines path")
+			.transition()
+				.duration(transitionDuration)
+				.ease("linear")
+				.attr("d", lineFunction)
+				.attr("transform", null);
+		} else {
+			graph.selectAll("g .lines path")
+				.attr("d", lineFunction)
+				.attr("transform", null);
 		}
 	}
 
@@ -199,11 +313,11 @@ function LinePlot(argsMap){
 		minValues = [];
 		maxValues = [];
 		data.values.forEach(function(v, i){
-			maxValues.push(d3.max(v.values));
-			minValues.push(d3.min(v.values));
+			maxValues.push(d3.max(v));
+			minValues.push(d3.min(v));
 		})
 
-		return [d3.max(maxValues), d3.min(minValues)];
+		return [d3.min(minValues), d3.max(maxValues)];
 	}
 
 	/*
@@ -213,14 +327,13 @@ function LinePlot(argsMap){
 		minValuesX = [];
 		maxValuesX = [];
 		
-		maxValuesX.push(d3.max(data.positioner_axis.values));
-		minValuesX.push(d3.min(data.positioner_axis.values));
-
-		return [maxValuesX[0], minValuesX[0]];
+		maxValuesX.push(d3.max(data.positioner_axis));
+		minValuesX.push(d3.min(data.positioner_axis));
+		return [minValuesX[0], maxValuesX[0]];
 	}
 
 	var initY = function() {
-		var extremaY = calculateExtyremaY(data)
+		var extremaY = calculateExtremaY(data)
 		
 		var numAxisLabels = 6;
 		if(yScale == 'pow') {
@@ -234,6 +347,7 @@ function LinePlot(argsMap){
 			y = d3.scale.linear().domain([extremaY[0], extremaY[1]]).range([h, 0]).nice();
 			numAxisLabels = data.numAxisLabelsLinearScale;
 		}
+		y.clamp(true)
 
 		yAxis = d3.svg.axis().scale(y).ticks(numAxisLabels, tickFormatForLogScale).orient("left");
 	}
@@ -242,7 +356,7 @@ function LinePlot(argsMap){
 	 * Allow re-initializing the x function at any time.
 	 */
 	var initX = function() {
-		x = d3.scale.linear().domain(calculateExtremaX()).range([0, w]);
+		x = d3.scale.linear().domain(calculateExtremaX(data)).range([0, w]);
 		
 		// create xAxis (with ticks)
 		xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(1);
@@ -278,28 +392,32 @@ function LinePlot(argsMap){
 		// Add the y-axis to the left
 		graph.append("svg:g")
 			.attr("class", "y axis left")
-			.attr("transform", "translate(-10,0)")
+			.attr("transform", "translate(0,0)")
 			.call(yAxis);
 				
 		// create line function used to plot our data
 		lineFunction = d3.svg.line()
 			// assign the X function to plot our line as we wish
 			.x(function(d,i) { 
-				return x(d);
+				//debug("Line X => data: " + data.positioner_axis[i] + " scale: " + x(data.positioner_axis[i]));
+				return x(data.positioner_axis[i]);
 			})
 			.y(function(d, i) { 
 				if(yScale == 'log' && d < 0.1) {
 					// log scale can't have 0s, so we set it to the smallest value we set on y
 					d = 0.1;
 				}
-				
+				//debug("Line Y => data: " + d + " scale: " + y(d))
 				return y(d);
-			})
-			.defined(function(d) {
+			});
+			//if (yScale=='log'){
+			//	lineFunction.defined(function(d) {
 				// handle missing data gracefully
 				// feature added in https://github.com/mbostock/d3/pull/594
-				return d >= 0;
-			});
+			//	return d > 0;
+			//	}
+			//)};
+			
 
 		// append a group to contain all lines
 		lines = graph.append("svg:g")
@@ -334,7 +452,7 @@ function LinePlot(argsMap){
 				})
 				.attr("fill", "none")
 				.attr("stroke", function(d, i) {
-					return data.colors[i];
+					return d3.rgb(data.colors[i]).toString();
 				})
 				.attr("d", lineFunction) // use the 'lineFunction' to create the data points in the correct x,y axis
 				.on('mouseover', function(d, i) {
@@ -368,6 +486,23 @@ function LinePlot(argsMap){
 		createDateLabel();
 		createLegend();		
 		setValueLabelsToLatest();
+		createXAxisLabel();
+	}
+
+	/**
+	 * Label the x axis
+	 */
+	var createXAxisLabel = function() {
+
+		var aAxisLabel_Group = graph.append("svg:g")
+				.attr("class", "xaxis-label-group")
+			.append("svg:text")
+				.attr("class", "xaxis-label")
+				.attr("text-anchor", "start") // set at end so we can position at far right edge and add text from right to left
+				.attr("font-size", "10") 
+				.attr("y", h+30)
+				.attr("x", 150)
+				.text(data.x_axis_label)		
 	}
 
 	/**
@@ -517,7 +652,7 @@ function LinePlot(argsMap){
 	 * Called when a user mouses over the graph.
 	 */
 	var handleMouseOverGraph = function(event) {	
-		var mouseX = event.pageX-hoverLineXOffset;
+		var mouseX = event.pageX-hoverLineXOffset+5;
 		var mouseY = event.pageY-hoverLineYOffset;
 		
 		//debug("MouseOver graph [" + containerId + "] => x: " + mouseX + " y: " + mouseY + "  height: " + h + " event.clientY: " + event.clientY + " offsetY: " + event.offsetY + " pageY: " + event.pageY + " hoverLineYOffset: " + hoverLineYOffset)
@@ -566,6 +701,7 @@ function LinePlot(argsMap){
 		.text(function(d, i) {
 			var valuesForX = getValueForPositionXFromData(xPosition, i);
 			xToShow = valuesForX;
+			//debug('xPosition: ' +xPosition+ 'value: '+valuesForX.value)
 			return valuesForX.value;
 		})
 		.attr("x", function(d, i) {
@@ -626,6 +762,21 @@ function LinePlot(argsMap){
 		}
 	}
 
+	/*
+	* Handler for when data is updated.
+	*/
+	var handleDataUpdate = function() {
+		if(userCurrentlyInteracting) {
+			// user is interacting, so let's update values to wherever the mouse/finger is on the updated data
+			if(currentUserPositionX > -1) {
+				displayValueLabelsForPositionX(currentUserPositionX)
+			}
+		} else {
+			// the user is not interacting with the graph, so we'll update the labels to the latest
+			setValueLabelsToLatest();
+		}
+	}
+
 	var getValueForPositionXFromData = function(xPosition, dataSeriesIndex) {
 		var d = data.values[dataSeriesIndex]
 		
@@ -634,13 +785,27 @@ function LinePlot(argsMap){
 
 		// Calculate the value from this date by determining the 'index'
 		// within the data array that applies to this value
-		var index = d.length-1;
+		var index = 0;
+		for (var i = 0; i < d.length; i++) {
+			if (data.positioner_axis[i]<xValue){
+				index = i;
+			}
+		};
+
+
+		if(index >= d.length) {
+			index = d.length-1;
+		}
+		// The date we're given is interpolated so we have to round off to get the nearest
+		// index in the data array for the xValue we're given.
+		// Once we have the index, we then retrieve the data from the d[] array
+		index = Math.round(index);
 
 		var v = d[index];
 
 		var roundToNumDecimals = data.rounding[dataSeriesIndex];
 
-		return {value: roundNumber(v, roundToNumDecimals), x_val: xValue};
+		return {value: roundNumber(v, roundToNumDecimals), x_val: roundNumber(xValue, 3)};
 	}
 
 	/* round a number to X digits: num => the number to round, dec => the number of decimals */
