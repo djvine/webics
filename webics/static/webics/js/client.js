@@ -104,7 +104,6 @@ $(document).ready(function(){
 
             
             if (scan_completed==0){
-                new_data = new_data['new_scan'];
                 
                 s = '<tr><td><button type="button" class="'+class_name+'"" id="'+new_data['scan']['scan_id']+'"><span class="glyphicon glyphicon-play"></span></button></td><td>'+new_data['scan']['ts']+'</td><td>'+ new_data['scan']['scan_id'] +'</td>';
 
@@ -117,7 +116,6 @@ $(document).ready(function(){
                 document.getElementById('scan_history').rows[1].className = 'highlight';
             }
             else if (scan_completed==1){
-                new_data = new_data['scan_completed'];
                 document.getElementById('scan_history').rows[1].className = '';
                 s='<button type="button" class="'+class_name+'"" id="'+new_data['scan']['scan_id']+'"><span class="glyphicon glyphicon-play"></span></button>'
                 document.getElementById('scan_history').rows[1].cells[0].innerHTML = s;
@@ -129,17 +127,57 @@ $(document).ready(function(){
 
         }
 
-        var update_scan_data = function(data){
-            n_rows = data['scan_data'].length-1;
+        var begin_new_scan = function(data){
+            known_n_rows = 1;
+            n_rows = -1; // Don't count 'x' element
+            for (key in data['scan_data']){
+                n_rows+=1;
+            }
+            current_row = 0;
+            data1 = data['scan_data'];
+            var new_dets = [];
+            selected_detectors.forEach(function(element, i){
+                var idx = data['scan_dets'].indexOf(element);
+                if (idx>-1){ // A detector is selected which DOES exist in the new dataset so keep it
+                    new_dets.push(element);
+                }
+            })
+            selected_detectors = new_dets;
             updateActiveDetectors(data['scan_dets']);
-            l1.updateData(data['scan_data'], row, selected_detectors);
+
+            l1.updateData(data['scan_data'], current_row, selected_detectors);
+            update_row_button_state();
+        }
+
+        var update_scan_data = function(data){
+            
+            n_rows = -1; // Don't count 'x' element
+            for (key in data['scan_data']){
+                
+                n_rows+=1;
+            }
+            
+            if (known_n_rows!=n_rows){ // a new row is available
+                
+                // Are we displaying latest row?
+                if (current_row+1==known_n_rows){//Yes
+                    current_row+=1
+                    document.getElementById('current_row').innerHTML=(current_row+1)+'/'+n_rows;
+                }
+                known_n_rows = n_rows;
+            }
+            if (current_row<0 || current_row>=n_rows){
+                current_row = 0;
+            }
+            data1 = data['scan_data'];
+            l1.updateData(data['scan_data'], current_row, selected_detectors);
             update_row_button_state();
         }
 
         scanSocket.on("new_scan", function(new_data){
             console.log('new_scan received');
             update_scan_history(new_data, 0);
-            update_scan_data(new_data);       
+            begin_new_scan(new_data);       
         });
 
         scanSocket.on("update_scan_history", function(new_data){
@@ -149,6 +187,7 @@ $(document).ready(function(){
 
         scanSocket.on("update_scan", function(update_data){
             console.log('update scan received');
+            update_scan_data(update_data);
         });
         scanSocket.on("scan_completed", function(new_data){
             console.log('scan completed');

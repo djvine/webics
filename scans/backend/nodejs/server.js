@@ -18,7 +18,7 @@ var get_realtime = {} // Record whether client is subscribed to live updates
 
 chat.on("connection", function (client) {
     client.on("join", function(name, beamline){
-        people[client.id] = name;
+        people[client.id] = name + " (" + beamline +  ")";
         if (beamline != 'broadcast'){
             try{
                 beamline_groups[beamline].push(client);   
@@ -27,7 +27,7 @@ chat.on("connection", function (client) {
                 beamline_groups[beamline] = [client];
             }
             client.emit("update", "You have connected to the server.");
-            chat.emit("update", name + "(" + beamline +  ") has joined the server.");
+            chat.emit("update", name+" has joined the server.");
             chat.emit("update-people", people);
         }
     });
@@ -91,7 +91,7 @@ scan.on("connection", function(client) {
                 }
             }
             else if (json_ob.hasOwnProperty('update_scan')){
-                client.emit("update_scan", json_ob['update_scan']);
+                client.emit("update_scan", {'scan_data': json_ob['update_scan']});
             }
             else if (json_ob.hasOwnProperty('scan_completed')){
                 client.emit('scan_completed', json_ob['scan_completed'])

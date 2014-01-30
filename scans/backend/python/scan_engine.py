@@ -145,18 +145,20 @@ class ScanListener(threading.Thread):
         json_cache = cache.copy()
         cache['scan_data'] = {}
         json_cache['scan_data'] = {}
-        json_cache['x'] = ('name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() )
+        json_cache['scan_data']['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
+        json_cache['scan_data']['0'] = []
+        json_cache['scan_dets'] = []
         for detector in cache['scan_dets']:
+            json_cache['scan_dets'].append(detector.split('.')[1][:3])
             cache['scan_data'][detector.split('.')[1][:3]+'_0'] = {'pvname': detector, 'row': 0, 'value': np.zeros((x_dim))}
-            json_cache['0'] = []
-            json_cache['0'].append(
+            json_cache['scan_data']['0'].append(
                 {'name': detector.split('.')[1][:3], 'values': np.zeros((x_dim)).tolist()}
             )
 
         json_cache['scan']['ts'] = json_cache['scan']['ts'].strftime("%a %d %b %H:%M")
         self.redis.publish(self.ioc_name, json.dumps({'new_scan': json_cache}))
         updates = {}
-        updates['x'] = ('name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() )
+        updates['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
         n_loops = 0L
         then = time.time()
         cpt = -1
@@ -170,24 +172,42 @@ class ScanListener(threading.Thread):
             new_cpt = self.pvs[self.pref1d+'.CPT'].get()
             if cpt != new_cpt:
                 cpt = new_cpt
-                for detector in cache['scan_dets']:
-                    cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
-                                                'row': row, 'value': self.pvs[detector].get()[:x_dim]}                    
-                    if '{:d}'.format(row) not in updates.keys():
-                        updates['{:d}'.format(row)]={}
-                    updates['{:d}'.format(row)][]
-                    updates[detector.split('.')[1][:3]+'_{:d}'.format(row)] = {
-                        'name': detector.split('.')[1][:3], 
-                        'values': cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist()
-                    }
+                updates['{:d}'.format(row)]=[]
+                if cpt>0:
+                    for detector in cache['scan_dets']:
+                        cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
+                                                    'row': row, 'value': self.pvs[detector].get()[:cpt]}
+                        
+                        updates['{:d}'.format(row)].append({
+                            'name': detector.split('.')[1][:3], 
+                            'values': cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist()
+                        })
+                        #print detector.split('.')[1][:3]+': ', cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value']
 
-                self.redis.publish(self.ioc_name, json.dumps({'update_scan': updates}))
+                    self.redis.publish(self.ioc_name, json.dumps({'update_scan': updates}))
 
             n_loops+=1
             if then-time.time()>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
                 n_loops = 0
                 then = time.time()
+
+        # Get final arrays
+        new_cpt = self.pvs[self.pref1d+'.CPT'].get()
+        if cpt != new_cpt:
+            cpt = new_cpt
+            updates['{:d}'.format(row)]=[]
+            for detector in cache['scan_dets']:
+                cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
+                                            'row': row, 'value': self.pvs[detector].get()[:cpt]}
+                
+                updates['{:d}'.format(row)].append({
+                    'name': detector.split('.')[1][:3], 
+                    'values': cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist()
+                })
+                #print detector.split('.')[1][:3]+': ', cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value']
+
+            self.redis.publish(self.ioc_name, json.dumps({'update_scan': updates}))
 
         # scan finished
         s = Scan(beamline=self.ioc_name, scan_id=scan_id, ts=cache['scan']['ts'])

@@ -23,7 +23,6 @@
 <script type="text/javascript"> 
 	var beamline = "{{ active_tab }}"
 	var l1 = new LinePlot({containerId: 'line_plot', data: data1});
-	
 </script>
 <script src="{% static 'webics/js/client.js' %}"></script>
 <div class='col-lg-4' >
@@ -64,19 +63,19 @@
 	<h4 class="text-center">Select Detectors</h4>
 	
 	{% for det in dets %}
-	{% if det == 'D00' or det == 'D07' or det == 'D14' or det == 'D21' or det == 'D28' or det == 'D35' or det == 'D42' or det == 'D49' or det == 'D56' or det == 'D63'%}
+	{% if det == 'D01' or det == 'D08' or det == 'D15' or det == 'D22' or det == 'D29' or det == 'D36' or det == 'D43' or det == 'D50' or det == 'D57' or det == 'D64'%}
 	<div class='detrows text-center'>
 	{% endif %}
 		<button onclick="toggle_state(this.id)" type="button" class="btn btn-primary btn-xs" id="{{ det }}">{{ det }}</button>
-	{% if det == 'D06' or det == 'D13' or det == 'D20' or det == 'D27' or det == 'D34' or det == 'D41' or det == 'D48' or det == 'D55' or det == 'D62' or det == 'D69'%}
+	{% if det == 'D07' or det == 'D14' or det == 'D21' or det == 'D28' or det == 'D35' or det == 'D42' or det == 'D49' or det == 'D56' or det == 'D63' or det == 'D70'%}
 	</div>
 	{% endif %}
 	{% endfor %}
 	<h4  class="text-center">Select Row</h4>
 	<span class="row-buttons">
-		<button onclick="change_row()" type="button" class="btn btn-default btn-xs disabled" id="decrement_row"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
-		Row: <span id="current_row">0</span>
-		<button onclick="change_row()" type="button" class="btn btn-default btn-xs disabled" id="increment_row"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
+		<button onclick="change_row(this.id)" type="button" class="btn btn-default btn-xs disabled" id="decrement_row"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
+		Row: <span id="current_row">1/2</span>
+		<button onclick="change_row(this.id)" type="button" class="btn btn-default btn-xs disabled" id="increment_row"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
 	</span>
 </div>
 
@@ -109,7 +108,8 @@
 </div>
 
 <script type="text/javascript">
-	updateActiveDetectors(['D01', 'D07']);
+	updateActiveDetectors(['D01', 'D07']); // For sample data
+	update_row_button_state()
 </script>
 
 {% endblock %}

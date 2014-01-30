@@ -176,9 +176,7 @@ function LinePlot(argsMap){
 					}
 				})
 			};
-		}
-		console.log(dataValues);
-		debug(displayNames);		
+		}		
 
 		var numAxisLabelsPowerScale = getOptionalVar(dataMap, 'numAxisLabelsPowerScale', 6); 
 		var numAxisLabelsLinearScale = getOptionalVar(dataMap, 'numAxisLabelsLinearScale', 6); 
@@ -338,7 +336,14 @@ function LinePlot(argsMap){
 			minValues.push(d3.min(v));
 		})
 
-		return [d3.min(minValues), d3.max(maxValues)];
+		var absmin = d3.min(minValues);
+		var absmax = d3.max(maxValues);
+		if (absmin==absmax){
+			absmin-=1;
+			absmax+=1;
+		}
+
+		return [absmin, absmax];
 	}
 
 	/*
@@ -358,12 +363,12 @@ function LinePlot(argsMap){
 		
 		var numAxisLabels = 6;
 		if(yScale == 'pow') {
-			y = d3.scale.pow().exponent(0.3).domain([extremaY[0], extremaY[1]]).range([h, 0]).nice();	
+			y = d3.scale.pow().exponent(0.3).domain([0, extremaY[1]]).range([h, 0]).nice();	
 			numAxisLabels = data.numAxisLabelsPowerScale;
 		} else if(yScale == 'log') {
 			// we can't have 0 so will represent 0 with a very small number
 			// 0.1 works to represent 0, 0.01 breaks the tickFormatter
-			y = d3.scale.log().domain([extremaY[0], extremaY[1]]).range([h, 0]).nice();	
+			y = d3.scale.log().domain([0.1, extremaY[1]]).range([h, 0]).nice();	
 		} else if(yScale == 'linear') {
 			y = d3.scale.linear().domain([extremaY[0], extremaY[1]]).range([h, 0]).nice();
 			numAxisLabels = data.numAxisLabelsLinearScale;
@@ -900,8 +905,7 @@ function LinePlot(argsMap){
 		// index in the data array for the xValue we're given.
 		// Once we have the index, we then retrieve the data from the d[] array
 		index = Math.round(index);
-
-		var v = d[index];
+		var v = d[index];		
 
 		var roundToNumDecimals = data.rounding[dataSeriesIndex];
 
