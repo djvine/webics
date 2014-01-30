@@ -1,6 +1,7 @@
 var active_detectors = [];
 var selected_detectors = [];
-var active_rows = [];
+var n_rows = 1;
+var current_row = 0;
 
 function zeroPad(num, places) {
 	var zero = places - num.toString().length + 1;
@@ -29,7 +30,7 @@ updateActiveDetectors = function(det_names){
 	})
 }
 
-function toggle_state(button_id)
+var toggle_state = function (button_id)
 {
 	if (hasClass(document.getElementById(button_id), 'btn-primary')){ // Not Selected
 		document.getElementById(button_id).className = "btn btn-success btn-xs";
@@ -49,4 +50,35 @@ function toggle_state(button_id)
 	}
 	l1.updateData(data1, 0, selected_detectors);
 	console.log(selected_detectors);
+}
+
+var change_row = function (button_id){
+	if (button_id=='increment_row'){
+		if (current_row+1<=n_rows-1){
+			current_row++;
+			document.getElementById('current_row').innerHTML=current_row;
+		}	
+	}
+	else {
+		if (current_row-1>=0){
+			current_row--;
+			document.getElementById('current_row').innerHTML=current_row;
+		}
+	}
+	
+}
+
+var update_row_button_state = function(){
+	if (current_row>=n_rows-1){
+		//Disable increment button
+		document.getElementById('increment_row').className = "btn btn-default btn-xs disabled"
+	} else{
+		document.getElementById('increment_row').className = "btn btn-default btn-xs"
+	}
+	if (current_row<=0){
+		//Disable increment button
+		document.getElementById('decrement_row').className = "btn btn-default btn-xs disabled"
+	} else{
+		document.getElementById('decrement_row').className = "btn btn-default btn-xs"
+	}
 }

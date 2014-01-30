@@ -129,14 +129,15 @@ $(document).ready(function(){
 
         }
 
-        var update_scan_data = function(new_data){
-            console.log(new_data['new_scan']['scan_data']);
-            ch.update_active_detectors(new_data['new_scan']['scan_data']);
-            ch.updateData(new_data['new_scan']['scan_data']);
+        var update_scan_data = function(data){
+            n_rows = data['scan_data'].length-1;
+            updateActiveDetectors(data['scan_dets']);
+            l1.updateData(data['scan_data'], row, selected_detectors);
+            update_row_button_state();
         }
 
         scanSocket.on("new_scan", function(new_data){
-            console.log('new_scan received', new_data);
+            console.log('new_scan received');
             update_scan_history(new_data, 0);
             update_scan_data(new_data);       
         });

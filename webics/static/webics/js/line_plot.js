@@ -13,7 +13,7 @@
  */
  /*
  	Author: B.J. Christensen
-	Adapeted By: D.J. Vine (djvine@gmail.com)
+	Adapted By: D.J. Vine (djvine@gmail.com)
  */
 
 

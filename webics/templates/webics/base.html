@@ -41,8 +41,8 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li  class="{% if active_tab == 'scans' %}active{% endif %}"><a href="/scans/">Scans</a></li>
-            {% for beamline in beamlines %}
-            <li  class="{% if active_tab == beamline %} active{% endif %}"><a href="/scans/{{ beamline.beamline }}/plots">{{ beamline.beamline }}</a></li>
+            {% for bl in beamlines %}
+            <li  class="{% if active_tab == bl.beamline %} active{% endif %}"><a href="/scans/{{ bl.beamline }}/plots">{{ bl.beamline }}</a></li>
             {% endfor %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -52,7 +52,7 @@
         </div><!--/.nav-collapse -->
       </div>
     </div>
-
+    
     <div class="container">
     {% block content %}
       <div class="starter-template">
