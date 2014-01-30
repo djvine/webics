@@ -28,19 +28,23 @@ function LinePlot(argsMap){
 	 * This does a full refresh of the data:
 	 * - x-axis will slide to new range
 	 * - lines will change in place
+	 * row - the row number to display
+	 * dets - an array of detector names to display e.g. ['D01', 'D07']
 	 */
-	this.updateData = function(newData, row) {
+	this.updateData = function(newData, row, dets) {
 		// data is being replaced, not appended so we re-assign 'data'
-		data = processDataMap(newData, row);
+		data = processDataMap(newData, row, dets);
 		// and then we rebind data.values to the lines
-	    graph.selectAll("g .lines path").data(data.values)
-		
+	    //graph.selectAll("g .lines path").data(data.values)
+		rebindData(data)
 		// redraw (with transition)
 		redrawAxes(true);
 		// transition is 'false' for lines because the transition is really weird when the data significantly changes
 		// such as going from 700 points to 150 to 400
 		// and because of that we rebind the data anyways which doesn't work with transitions very well at all
 		redrawLines(false);
+
+		redrawLegend();
 		
 		handleDataUpdate();
 		
@@ -96,7 +100,7 @@ function LinePlot(argsMap){
 	var scales = [['linear','Linear'], ['pow','Power'], ['log','Log']];
 	var hoverContainer, hoverLine, hoverLineXOffset, hoverLineYOffset, hoverLineGroup;
 	var legendFontSize = 12; // we can resize dynamically to make fit so we remember it here
-
+	var dets = ['D01']
 	// instance storage of data to be displayed
 	var data;
 		
@@ -128,7 +132,7 @@ function LinePlot(argsMap){
 		margin[3] = getOptionalVar(argsMap, 'marginLeft', 90) // marginLeft allows fitting the axis labels
 		
 		// assign instance vars from dataMap
-		data = processDataMap(getRequiredVar(argsMap, 'data'), 0);
+		data = processDataMap(getRequiredVar(argsMap, 'data'), 0, dets);
 		
 		/* set the default scale */
 		yScale = data.scale;
@@ -152,18 +156,29 @@ function LinePlot(argsMap){
 	 		"1": [{"name":"D01", "values":[10,11,12]}, {"name":"D02", "values":[13,14,15]}]
 	 	}
 	 */
-	var processDataMap = function(dataMap, row) {
+	var processDataMap = function(dataMap, row, dets) {
 		// assign data values to plot over time
 		var positioner_axis = getRequiredVar(dataMap, 'x', "The data object must contain a 'x' value with a data array.");
-		// Loop over all rows
+		// Loop over all 
 		var dataValues = []
-		dataMap[row].forEach(function(v,i){
-			dataValues.push(v.values)
-		})
 		var displayNames = [];
-		dataMap[row].forEach(function (v, i){
+		if (!dets){
+			dataMap[row].forEach(function(v,i){
+			dataValues.push(v.values);
 			displayNames[i] = v.name;
-		})
+			})
+		} else {
+			for (var i = 0; i < dets.length; i++) {
+				dataMap[row].forEach(function(v){
+					if (v.name==dets[i]){
+						dataValues.push(v.values);
+						displayNames[i] = v.name;
+					}
+				})
+			};
+		}
+		console.log(dataValues);
+		debug(displayNames);		
 
 		var numAxisLabelsPowerScale = getOptionalVar(dataMap, 'numAxisLabelsPowerScale', 6); 
 		var numAxisLabelsLinearScale = getOptionalVar(dataMap, 'numAxisLabelsLinearScale', 6); 
@@ -212,6 +227,12 @@ function LinePlot(argsMap){
 			"numAxisLabelsLinearScale": numAxisLabelsLinearScale,
 			"numAxisLabelsPowerScale": numAxisLabelsPowerScale
 		}
+	}
+
+	var redrawLegend = function(){
+		lg = document.getElementsByClassName('legend-group');
+		lg[0].parentElement.removeChild(lg[0]);
+		createLegend();
 	}
 
 	var redrawAxes = function(withTransition) {
@@ -360,6 +381,85 @@ function LinePlot(argsMap){
 		
 		// create xAxis (with ticks)
 		xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(1);
+	}
+
+	var rebindData = function(data){
+		lg = document.getElementsByClassName('lines');
+		lg[0].parentElement.removeChild(lg[0]);
+
+		// create line function used to plot our data
+		lineFunction = d3.svg.line()
+			// assign the X function to plot our line as we wish
+			.x(function(d,i) { 
+				//debug("Line X => data: " + data.positioner_axis[i] + " scale: " + x(data.positioner_axis[i]));
+				return x(data.positioner_axis[i]);
+			})
+			.y(function(d, i) { 
+				if(yScale == 'log' && d < 0.1) {
+					// log scale can't have 0s, so we set it to the smallest value we set on y
+					d = 0.1;
+				}
+				//debug("Line Y => data: " + d + " scale: " + y(d))
+				return y(d);
+			});
+			//if (yScale=='log'){
+			//	lineFunction.defined(function(d) {
+				// handle missing data gracefully
+				// feature added in https://github.com/mbostock/d3/pull/594
+			//	return d > 0;
+			//	}
+			//)};
+			
+
+		// append a group to contain all lines
+		lines = graph.append("svg:g")
+				.attr("class", "lines")
+				.selectAll("path")
+				.data(data.values); // bind the array of arrays
+
+		// persist this reference so we don't do the selector every mouse event
+		hoverContainer = container.querySelector('g .lines');
+		
+		
+		$(container).mouseleave(function(event) {
+			handleMouseOutGraph(event);
+		})
+		
+		$(container).mousemove(function(event) {
+			handleMouseOverGraph(event);
+		})		
+
+		
+		// add a line group for each array of values (it will iterate the array of arrays bound to the data function above)
+		linesGroup = lines.enter().append("g")
+				.attr("class", function(d, i) {
+					return "line_group series_" + i;
+				});
+				
+		// add path (the actual line) to line group
+		linesGroup.append("path")
+				.attr("class", function(d, i) {
+					//debug("Appending line [" + containerId + "]: " + i)
+					return "line series_" + i;
+				})
+				.attr("fill", "none")
+				.attr("stroke", function(d, i) {
+					return d3.rgb(data.colors[i]).toString();
+				})
+				.attr("d", lineFunction) // use the 'lineFunction' to create the data points in the correct x,y axis
+				.on('mouseover', function(d, i) {
+					handleMouseOverLine(d, i);
+				});
+		
+		// add line label to line group
+		linesGroupText = linesGroup.append("svg:text");
+		linesGroupText.attr("class", function(d, i) {
+				//debug("Appending line [" + containerId + "]: " + i)
+				return "line_label series_" + i;
+			})
+			.text(function(d, i) {
+				return "";
+			});
 	}
 
 	/**

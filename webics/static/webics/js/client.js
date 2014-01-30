@@ -155,7 +155,6 @@ $(document).ready(function(){
         });
 
 
-
         $(".scan_sel").click(function(){
             console.log(this.id);
             // if currently selected button was re-selected do nothing
