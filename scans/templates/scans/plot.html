@@ -74,9 +74,9 @@
 	{% endfor %}
 	<h4  class="text-center">Select Row</h4>
 	<span class="row-buttons">
-		<button onclick="decrement_row()" type="button" class="btn btn-default btn-xs" id="decrement_row"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
+		<button onclick="change_row()" type="button" class="btn btn-default btn-xs disabled" id="decrement_row"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
 		Row: <span id="row_number">0</span>
-		<button onclick="increment_row()" type="button" class="btn btn-default btn-xs" id="increment_row"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
+		<button onclick="change_row()" type="button" class="btn btn-default btn-xs disabled" id="increment_row"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
 	</span>
 </div>
 

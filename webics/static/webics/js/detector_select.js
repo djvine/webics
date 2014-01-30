@@ -1,5 +1,6 @@
 var active_detectors = [];
 var selected_detectors = [];
+var active_rows = [];
 
 function zeroPad(num, places) {
 	var zero = places - num.toString().length + 1;
