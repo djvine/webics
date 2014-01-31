@@ -49,7 +49,7 @@ $(document).ready(function(){
 
         chatSocket.on("chat", function(who, beamline, msg){
             if(ready) {
-                $("#msgs").append("" + who + "(" + beamline + ")" + " says: " + msg + "<br>");
+                $("#msgs").append("" + who + " says: " + msg + "<br>");
                 $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
             }
         });
@@ -70,7 +70,7 @@ $(document).ready(function(){
         $("#msg").keypress(function(e){
             if(e.which == 13) {
                 var msg = $("#msg").val();
-                chatSocket.emit("send", msg, bDeamline);
+                chatSocket.emit("send", msg, beamline);
                 $("#msg").val("");
             }
         });

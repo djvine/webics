@@ -40,29 +40,28 @@ class ClientListener(threading.Thread):
         cache = {}
         try:
             s = Scan.objects.filter(beamline=beamline).filter(scan_id=scan_id).order_by('-ts')[0]
+            cache['scan'] = {'scan_id': scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
+            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
+                                entry in s.history.values()]
+            cache['scan_dets'] = ['D{:02d}'.format(entry['active']) for entry in s.detectors.values()]
+            cache['scan_metadata'] = [{'pvname':entry['pvname'], 'value':entry['value']} for entry in s.metadata.values()]
+            cache['scan_data'] = {}
+            for entry in s.data.values():
+                if entry['pvname']=='x':
+                    cache['scan_data']['x'] = {'name': entry['pvname'], 
+                                               'values': cPickle.loads(str(entry['value'])).tolist()}
+                else:
+                    try:
+                        cache['scan_data'][entry['row']]
+                    except:
+                        cache['scan_data'][entry['row']] = []
+                    cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3], 
+                                                             'values': cPickle.loads(str(entry['value'])).tolist()})
+
+            self.redis.publish('hist_data_reply', json.dumps({'hist_data': cache, 'client_id': client_id}))
+            print 'Sent hist data response'
         except:
             print 'Error: no scan_id there'
-
-        cache['scan'] = {'scan_id': scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
-        cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
-                            entry in s.history.values()]
-        cache['scan_dets'] = ['D{:02d}'.format(entry['active']) for entry in s.detectors.values()]
-        cache['scan_metadata'] = [{'pvname':entry['pvname'], 'value':entry['value']} for entry in s.metadata.values()]
-        cache['scan_data'] = {}
-        for entry in s.data.values():
-            if entry['pvname']=='x':
-                cache['scan_data']['x'] = {'name': entry['pvname'], 
-                                           'values': cPickle.loads(str(entry['value'])).tolist()}
-            else:
-                try:
-                    cache['scan_data'][entry['row']]
-                except:
-                    cache['scan_data'][entry['row']] = []
-                cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3], 
-                                                         'values': cPickle.loads(str(entry['value'])).tolist()})
-
-        self.redis.publish('hist_data_reply', json.dumps({'hist_data': cache, 'client_id': client_id}))
-        print 'Sent hist data response'
 
     def run(self):
         for item in self.pubsub.listen():

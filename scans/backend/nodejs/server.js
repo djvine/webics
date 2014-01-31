@@ -1,6 +1,7 @@
 var http = require('http'),
 io = require('socket.io');
 var redis = require('socket.io/node_modules/redis');
+
 var server = http.createServer(function(request, response) {
   response.writeHeader(200, {"Content-Type": "text/html"});
   response.end();
@@ -112,17 +113,21 @@ scan.on("connection", function(client) {
         get_realtime[client.id] = subscribe_to_realtime;
         client.emit('update', 'client requested historical data');
         var hist_request_client = redis.createClient();
+        var hist_reply_client = redis.createClient();
+        hist_reply_client.subscribe('hist_data_reply');
         hist_request_client.publish('hist_data_request', [beamline, scan_id, client.id]);
-        var hist_reply = redis.createClient();
-        hist_reply.subscribe('hist_data_reply');
-        hist_reply.on('message', function(channel, message){
-            json_ob = JSON.parse(message);
-            scan.emit('update', client.id+' '+json_ob['client_id']);
-            scan.emit('update', json_ob['hist_data']);
-            client.emit('hist_data_reply', json_ob['hist_data']);   
+        // TODO: this is an ugly hack to stop repeated messages being sent here
+        // Why does this client get fired mutliple times with each button press?
+        first = true;
+        hist_reply_client.on('message', function(channel, message){
+            if (first){
+                json_ob = JSON.parse(message);
+                scan.emit('update', client.id+' '+json_ob['client_id']);
+                client.emit('hist_data_reply', json_ob['hist_data']);
+                first = false;
+            }
         });
     });
-    
 
 
     client.on("disconnect", function(){
@@ -130,4 +135,5 @@ scan.on("connection", function(client) {
         delete get_realtime[client.id];
         scan.emit('update', "Somebody left.");
     });
+    
 });
