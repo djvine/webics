@@ -193,13 +193,21 @@ $(document).ready(function(){
             console.log('scan completed');
             update_scan_history(new_data, 1);
         });
+        scanSocket.on('hist_data_reply', function(new_data){
+            console.log('Hist data reply received at client.')
+            begin_new_scan(new_data);
+        });
 
 
         $(".scan_sel").click(function(){
             console.log(this.id);
-            // if currently selected button was re-selected do nothing
+            var idx = document.getElementById('scan_history').rows[1].cells[0].childNodes[0].className.indexOf('success');
+            var subscribe_to_realtime = 0;
+            if (idx>-1){
+                subscribe_to_realtime = 1;
+            }
 
-            scanSocket.emit('scan_select', beamline, this.id);
+            scanSocket.emit('scan_select', beamline, this.id, subscribe_to_realtime);
             [].forEach.call(document.getElementsByClassName('scan_sel'), function (element) {
                 element.className = "scan_sel btn btn-primary btn-xs";
             })

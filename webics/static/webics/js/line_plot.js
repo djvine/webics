@@ -465,6 +465,9 @@ function LinePlot(argsMap){
 			.text(function(d, i) {
 				return "";
 			});
+		xlg = document.getElementsByClassName('xaxis-label-group');
+		xlg[0].parentElement.removeChild(xlg[0]);
+		createXAxisLabel(data.x_axis_label);
 	}
 
 	/**
@@ -591,13 +594,13 @@ function LinePlot(argsMap){
 		createDateLabel();
 		createLegend();		
 		setValueLabelsToLatest();
-		createXAxisLabel();
+		createXAxisLabel(data.x_axis_label);
 	}
 
 	/**
 	 * Label the x axis
 	 */
-	var createXAxisLabel = function() {
+	var createXAxisLabel = function(lbl) {
 
 		var aAxisLabel_Group = graph.append("svg:g")
 				.attr("class", "xaxis-label-group")
@@ -607,7 +610,7 @@ function LinePlot(argsMap){
 				.attr("font-size", "10") 
 				.attr("y", h+30)
 				.attr("x", 150)
-				.text(data.x_axis_label)		
+				.text(lbl)		
 	}
 
 	/**
