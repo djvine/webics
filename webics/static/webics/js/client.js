@@ -144,7 +144,7 @@ $(document).ready(function(){
             })
             selected_detectors = new_dets;
             updateActiveDetectors(data['scan_dets']);
-
+            console.log(data['scan_data']);
             l1.updateData(data['scan_data'], current_row, selected_detectors);
             update_row_button_state();
         }
@@ -198,8 +198,7 @@ $(document).ready(function(){
             begin_new_scan(new_data);
         });
 
-
-        $(".scan_sel").click(function(){
+        $(document).on("click", ".scan_sel", function(){
             console.log(this.id);
             var idx = document.getElementById('scan_history').rows[1].cells[0].childNodes[0].className.indexOf('success');
             var subscribe_to_realtime = 0;

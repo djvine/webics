@@ -111,15 +111,15 @@ scan.on("connection", function(client) {
         // Asking for latest scan?
         get_realtime[client.id] = subscribe_to_realtime;
         client.emit('update', 'client requested historical data');
-        var sub = redis.createClient();
-        sub.publish('hist_data_request', [beamline, scan_id, client.id]);
-        var sub = redis.createClient();
-        sub.subscribe('hist_data_reply');
-        sub.on('message', function(channel, message){
+        var hist_request_client = redis.createClient();
+        hist_request_client.publish('hist_data_request', [beamline, scan_id, client.id]);
+        var hist_reply = redis.createClient();
+        hist_reply.subscribe('hist_data_reply');
+        hist_reply.on('message', function(channel, message){
             json_ob = JSON.parse(message);
-            if (client.id==message['client_id']){
-                client.emit('hist_data_reply', json_ob['hist_data'])
-            }
+            scan.emit('update', client.id+' '+json_ob['client_id']);
+            scan.emit('update', json_ob['hist_data']);
+            client.emit('hist_data_reply', json_ob['hist_data']);   
         });
     });
     
