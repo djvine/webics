@@ -65,11 +65,11 @@ d3.json("http://127.0.0.1:8000/static/webics/js/lena.json", function(error, img)
   // Compute the pixel colors; scaled by CSS.
   function drawImage(canvas) {
     var context = canvas.node().getContext("2d"),
-        image = context.createImageData(dx, dy);
+        image = context.createImageData(data.h_axis.length, data.v_axis.length);
 
-    for (var y = 0, p = -1; y < dy; ++y) {
-      for (var x = 0; x < dx; ++x) {
-        var c = d3.rgb(color(img[y][x]));
+    for (var y = 0, p = -1; y < data.values.length; ++y) {
+      for (var x = 0; x < data.values[0].length; ++x) {
+        var c = d3.rgb(color(data.values[y][x]));
         image.data[++p] = c.r;
         image.data[++p] = c.g;
         image.data[++p] = c.b;
