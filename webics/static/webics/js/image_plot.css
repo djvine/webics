@@ -1,0 +1,50 @@
+svg.image-graph text {
+	cursor: default;
+}
+
+svg.image-graph .hover-line {
+	stroke: #6E7B8B;
+}
+
+svg.image-graph .hide {
+	opacity: 0;
+}
+				
+svg.image-graph .axis {
+  shape-rendering: crispEdges;
+}
+
+svg.image-graph .x.axis line {
+  stroke: #D3D3D3;
+}
+
+svg.image-graph .x.axis .minor {
+  stroke-opacity: .5;
+}
+
+svg.image-graph .x.axis path {
+  display: none;
+}
+			
+svg.image-graph .x.axis text {
+	font-size: 10px;
+}
+
+svg.image-graph .y.axis line, .y.axis path {
+  fill: none;
+  stroke: #000;
+}
+			
+svg.image-graph .y.axis text {
+	font-size: 12px;
+}
+
+svg.image-graph .scale-button:not(.selected):hover {
+	text-decoration: underline;
+	cursor: pointer !important;
+}
+
+svg.image-graph .date-label {
+	fill: #6E7B8B;
+}
+

@@ -9,15 +9,17 @@
 <script src="{% static 'webics/d3/d3.v3.js' %}"></script>
 <script src="{% static 'webics/js/socket.io.js' %}"></script>
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script src="{% static 'webics/js/lena.js' %}"></script>
+<script src="{% static 'webics/js/img.js' %}"></script>
 <script src="{% static 'webics/js/image_plot.js' %}"></script>
 <link href="{% static 'webics/js/image_plot.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 {% load staticfiles %}
+
 <div id="test_image" class="lImage" style="position:relative;width:100%;height:400px"></div>
 <script type="text/javascript"> 
+  img1['det'] = 'D01';
   var i1 = new ImagePlot({containerId: 'test_image', data: img1});
 </script>
 

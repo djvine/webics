@@ -67,7 +67,7 @@ function ImagePlot(argsMap){
 	
 	// functions we use to display and interact with the graphs and lines
 	var image, graph, x, y, color, xAxis, yAxis, linesGroup, linesGroupText, lines, lineFunction;
-	var zScale = 'linear'; // can be pow, log, linear
+	var yScale = 'linear'; // can be pow, log, linear
 	var scales = [['linear','Linear'], ['pow','Power'], ['log','Log']];
 	var hoverContainer, hoverLine1, hoverLine1XOffset, hoverLine1YOffset, hoverLine2, hoverLine2XOffset, hoverLine2YOffset, hoverLineGroup;
 	var legendFontSize = 12; // we can resize dynamically to make fit so we remember it here
@@ -176,9 +176,8 @@ function ImagePlot(argsMap){
 		// Loop over all 
 		var dataValues = [];
 		var displayNames = [det];
-
 		$.each(dataMap, function(key,val){
-			if (!isNaN(parseInt(dataMap[key]))) {
+			if (!isNaN(parseInt(key))) {
 				val.forEach(function(v,i){
 					if (v.name==det){
 						dataValues.push(v.values);
@@ -225,9 +224,7 @@ function ImagePlot(argsMap){
 			"displayNames": displayNames,
 			"displayColor": displayColor,
 			"trueAspect": true_aspect,
-			"colors": color,
 			"scale" : getOptionalVar(dataMap, 'scale', yScale),
-			"maxValues" : maxValues,
 			"rounding" : rounding,
 			"numAxisLabelsLinearScale": numAxisLabelsLinearScale,
 			"numAxisLabelsPowerScale": numAxisLabelsPowerScale
@@ -242,6 +239,7 @@ function ImagePlot(argsMap){
 	var createGraph = function() {
 		// The z-axis is color so update the colormap when the data changes
 		initZ();
+		console.log(data)
 
 	    image = d3.select("#" + containerId).append("canvas")
 				.attr("class", "image-map")
@@ -249,8 +247,6 @@ function ImagePlot(argsMap){
 	      		.attr("height", data.v_axis.length)
 				.attr("width", w + margin[1] + margin[3] + "px")
 				.attr("height", h + margin[0] + margin[2] + "px")	
-				.append("svg:g")
-				.attr("transform", "translate(" + margin[3] + "," + margin[0] + ")")
 				.call(drawImage);
 
 		
@@ -429,8 +425,8 @@ function ImagePlot(argsMap){
 			minValuesZ.push(d3.min(v));
 		})
 
-		var absmin = d3.min(minValues);
-		var absmax = d3.max(maxValues);
+		var absmin = d3.min(minValuesZ);
+		var absmax = d3.max(maxValuesZ);
 		if (absmin==absmax){
 			absmin-=1;
 			absmax+=1;
@@ -438,7 +434,7 @@ function ImagePlot(argsMap){
 		minValuesZ = [absmin];
 		maxValuesZ = [absmax];
 
-		return [absmin, 0.5*(absmax+abmin) ,absmax];
+		return [absmin, 0.5*(absmax+absmin) ,absmax];
 	}
 
 	/*
@@ -467,11 +463,12 @@ function ImagePlot(argsMap){
 		} else if(yScale == 'log') {
 			// we can't have 0 so will represent 0 with a very small number
 			// 0.1 works to represent 0, 0.01 breaks the tickFormatter
-			color = d3.scale.log().domain([0.1, 0.5*extremaZ[2] extremaZ[2]]).range(colorMaps[data.displayColor]).nice();	
+			color = d3.scale.log().domain([0.1, 0.5*extremaZ[2], extremaZ[2]]).range(colorMaps[data.displayColor]).nice();	
 		} else if(yScale == 'linear') {
-			color = d3.scale.linear().domain(calculateExtremaZ).range(colorMaps[data.displayColor]).nice();
+			color = d3.scale.linear().domain(extremaZ).range(colorMaps[data.displayColor]).nice();
 		}
 		color.clamp(true)
+		data.color = color
 	}
 	
 	// Compute the pixel colors; scaled by CSS.
@@ -644,9 +641,10 @@ function ImagePlot(argsMap){
 		// Once we have the index, we then retrieve the data from the d[] array
 		indexX = Math.round(indexX);
 		indexY = Math.round(indexY);
-		try:
+		try {
 			// This index may not have been measured yet
-			var v = d[indexY][indexX];		
+			var v = d[indexY][indexX];
+		}
 		catch (err){
 			var v = 0.0;
 		}
