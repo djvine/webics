@@ -25,7 +25,7 @@ function ImagePlot(argsMap){
 	var self = this;
 
 	this.switchToPowerScale = function() {
-		yScale = 'pow';
+		zScale = 'pow';
 		redrawAxes(true);
 		redrawImage(true);
 		
@@ -34,7 +34,7 @@ function ImagePlot(argsMap){
 	}
 
 	this.switchToLogScale = function() {
-		yScale = 'log';
+		zScale = 'log';
 		redrawAxes(true);
 		redrawImage(true);
 		
@@ -43,7 +43,7 @@ function ImagePlot(argsMap){
 	}
 
 	this.switchToLinearScale = function() {
-		yScale = 'linear';
+		zScale = 'linear';
 		redrawAxes(true);		
 		redrawImage(true);
 		
@@ -55,7 +55,7 @@ function ImagePlot(argsMap){
 	 * Return the current scale value: pow, log or linear
 	 */
 	this.getScale = function() {
-		return yScale;
+		return zScale;
 	}
 
 	/* *************************************************************** */
@@ -66,8 +66,8 @@ function ImagePlot(argsMap){
 	var container;
 	
 	// functions we use to display and interact with the graphs and lines
-	var image, graph, x, y, color, xAxis, yAxis, linesGroup, linesGroupText, lines, lineFunction;
-	var yScale = 'linear'; // can be pow, log, linear
+	var context, image, graph, x, y, color, xAxis, yAxis, linesGroup, linesGroupText, lines, lineFunction;
+	var zScale = 'linear'; // can be pow, log, linear
 	var scales = [['linear','Linear'], ['pow','Power'], ['log','Log']];
 	var hoverContainer, hoverLine1, hoverLine1XOffset, hoverLine1YOffset, hoverLine2, hoverLine2XOffset, hoverLine2YOffset, hoverLineGroup;
 	var legendFontSize = 12; // we can resize dynamically to make fit so we remember it here
@@ -156,8 +156,8 @@ function ImagePlot(argsMap){
 	*/
 	var initDimensions = function() {
 		// automatically size to the container using JQuery to get width/height
-		w = $("#" + containerId).width() - margin[1] - margin[3]; // width
-		h = $("#" + containerId).height() - margin[0] - margin[2]; // height
+		w = data.v_axis.length;//$("#" + containerId).width() - margin[1] - margin[3]; // width
+		h = data.h_axis.length;//$("#" + containerId).height() - margin[0] - margin[2]; // height
 		
 		// make sure to use offset() and not position() as we want it relative to the document, not its parent
 		hoverLine1XOffset = margin[3]+$(container).offset().left;
@@ -173,6 +173,11 @@ function ImagePlot(argsMap){
 		var det = getRequiredVar(dataMap, 'det', "The data object must specify a detector.");
 		var displayColor = getOptionalVar(dataMap, 'display_color', "blues");
 		var true_aspect = getOptionalVar(dataMap, 'true_aspect_ratio', false)
+
+		h = h_axis.length;
+		w = v_axis.length;
+
+
 		// Loop over all 
 		var dataValues = [];
 		var displayNames = [det];
@@ -224,7 +229,7 @@ function ImagePlot(argsMap){
 			"displayNames": displayNames,
 			"displayColor": displayColor,
 			"trueAspect": true_aspect,
-			"scale" : getOptionalVar(dataMap, 'scale', yScale),
+			"scale" : getOptionalVar(dataMap, 'scale', zScale),
 			"rounding" : rounding,
 			"numAxisLabelsLinearScale": numAxisLabelsLinearScale,
 			"numAxisLabelsPowerScale": numAxisLabelsPowerScale
@@ -239,22 +244,21 @@ function ImagePlot(argsMap){
 	var createGraph = function() {
 		// The z-axis is color so update the colormap when the data changes
 		initZ();
-		console.log(data)
-
+		
 	    image = d3.select("#" + containerId).append("canvas")
 				.attr("class", "image-map")
-				.attr("width", data.h_axis.length)
-	      		.attr("height", data.v_axis.length)
-				.attr("width", w + margin[1] + margin[3] + "px")
-				.attr("height", h + margin[0] + margin[2] + "px")	
+				.attr("width", w + margin[1]+margin[2])
+	      		.attr("height", h + margin[0]+margin[3])
+				.style("width", w )
+      			.style("height", h )
 				.call(drawImage);
-
+		
 		
 		// Add an SVG element with the desired dimensions and margin.
 		graph = d3.select("#" + containerId).append("svg:svg")
 				.attr("class", "image-graph")
-				.attr("width", w + margin[1] + margin[3])
-				.attr("height", h + margin[0] + margin[2])	
+				.attr("width",  w + margin[1]+margin[2] )
+				.attr("height", h + margin[0]+margin[3] )	
 				.append("svg:g")
 				.attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
 
@@ -337,14 +341,14 @@ function ImagePlot(argsMap){
 				})
 				.attr("font-size", "12") // this must be before "x" which dynamically determines width
 				.attr("fill", function(d) {
-					if(d[0] == yScale) {
+					if(d[0] == zScale) {
 						return "black";
 					} else {
 						return "blue";
 					}
 				})
 				.classed("selected", function(d) {
-					if(d[0] == yScale) {
+					if(d[0] == zScale) {
 						return true;
 					} else {
 						return false;
@@ -375,14 +379,14 @@ function ImagePlot(argsMap){
 		// change text decoration
 		graph.selectAll('.scale-button')
 		.attr("fill", function(d) {
-			if(d[0] == yScale) {
+			if(d[0] == zScale) {
 				return "black";
 			} else {
 				return "blue";
 			}
 		})
 		.classed("selected", function(d) {
-			if(d[0] == yScale) {
+			if(d[0] == zScale) {
 				return true;
 			} else {
 				return false;
@@ -391,28 +395,6 @@ function ImagePlot(argsMap){
 		
 	}
 
-	/*
-	 * Whenever we add/update data we want to re-calculate if the max X scale has changed
-	 */
-	var calculateExtremaX = function(data) {
-		minValuesX = [];
-		maxValuesX = [];
-		
-		maxValuesX.push(d3.max(data.h_axis));
-		minValuesX.push(d3.min(data.h_axis));
-		return [minValuesX[0], maxValuesX[0]];
-	}
-	/*
-	 * Whenever we add/update data we want to re-calculate if the max X scale has changed
-	 */
-	var calculateExtremaY = function(data) {
-		minValuesY = [];
-		maxValuesY = [];
-		
-		maxValuesY.push(d3.max(data.v_axis));
-		minValuesY.push(d3.min(data.v_axis));
-		return [minValuesY[0], maxValuesY[0]];
-	}
 
 	/*
 	 * Whenever we add/update data we want to re-calculate if the max Y scale has changed
@@ -441,40 +423,40 @@ function ImagePlot(argsMap){
 	* Allow re-initializing the x function at any time.
 	*/
 	var initX = function() {
-		x = d3.scale.linear().domain(calculateExtremaX(data)).range([0, w]).nice();
+		x = d3.scale.linear().domain([data.h_axis[0], data.h_axis[data.h_axis.length-1]]).range([0, w]);
 		
 		// create xAxis (with ticks)
-		xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(1);
+		xAxis = d3.svg.axis().scale(x).orient("bottom");
 	}
 
 	/*
 	* Allow re-initializing the x function at any time.
 	*/
 	var initY = function() {
-		y = d3.scale.linear().domain(calculateExtremaY(data)).range([h, 0]).nice();
+		y = d3.scale.linear().domain([data.v_axis[0], data.v_axis[data.v_axis.length-1]]).range([h, 0]);
 		// create xAxis (with ticks)
-		yAxis = d3.svg.axis().scale(y).tickSize(-h).tickSubdivide(1);
+		yAxis = d3.svg.axis().scale(y).orient("left");
 	}
 
 	var initZ = function(){
+
 		extremaZ = calculateExtremaZ(data)
-		if(yScale == 'pow') {
+		if(zScale == 'pow') {
 			color = d3.scale.pow().exponent(0.3).domain(extremaZ).range(colorMaps[data.displayColor]).nice();	
-		} else if(yScale == 'log') {
+		} else if(zScale == 'log') {
 			// we can't have 0 so will represent 0 with a very small number
 			// 0.1 works to represent 0, 0.01 breaks the tickFormatter
 			color = d3.scale.log().domain([0.1, 0.5*extremaZ[2], extremaZ[2]]).range(colorMaps[data.displayColor]).nice();	
-		} else if(yScale == 'linear') {
+		} else if(zScale == 'linear') {
 			color = d3.scale.linear().domain(extremaZ).range(colorMaps[data.displayColor]).nice();
 		}
 		color.clamp(true)
-		data.color = color
 	}
 	
 	// Compute the pixel colors; scaled by CSS.
   	function drawImage(canvas) {
 	    var context = canvas.node().getContext("2d"),
-	        image = context.createImageData(data.h_axis.length, data.v_axis.length);
+	    image = context.createImageData(data.h_axis.length, data.v_axis.length);
 
 	    for (var y = 0, p = -1; y < data.values.length; ++y) {
 	      for (var x = 0; x < data.values[0].length; ++x) {
@@ -486,14 +468,14 @@ function ImagePlot(argsMap){
 	      }
 	    }
 
-	    context.putImageData(image, 0, 0);
+	    context.putImageData(image, margin[3], margin[0]);
   	}
 
 	/**
 	 * Called when a user mouses over the graph.
 	 */
 	var handleMouseOverGraph = function(event) {	
-		var mouseX = event.pageX-hoverLine1XOffset+5;
+		var mouseX = event.pageX-hoverLine1XOffset;
 		var mouseY = event.pageY-hoverLine1YOffset;
 		
 		//debug("MouseOver graph [" + containerId + "] => x: " + mouseX + " y: " + mouseY + "  height: " + h + " event.clientY: " + event.clientY + " offsetY: " + event.offsetY + " pageY: " + event.pageY + " hoverLineYOffset: " + hoverLineYOffset)
@@ -503,8 +485,8 @@ function ImagePlot(argsMap){
 			hoverLine2.classed("hide", false);
 
 			// set position of hoverLine
-			hoverLine1.attr("x1", mouseX).attr1("x2", mouseX)
-			hoverLine2.attr("y1", mouseY).attr1("y2", mouseY)
+			hoverLine1.attr("x1", mouseX).attr("x2", mouseX)
+			hoverLine2.attr("y1", mouseY).attr("y2", mouseY)
 			
 			displayValueLabelsForPositionXY(mouseX, mouseY)
 			
@@ -520,13 +502,15 @@ function ImagePlot(argsMap){
 
 	var handleMouseOutGraph = function(event) {	
 		// hide the hover-line
-		hoverLine.classed("hide", true);
+		hoverLine1.classed("hide", true);
+		hoverLine2.classed("hide", true);
 		
 		setValueLabelsToLatest();
 		
 		// user is no longer interacting
 		userCurrentlyInteracting = false;
 		currentUserPositionX = -1;
+		currentUserPositionY = -1;
 	}
 
 	/**
@@ -615,13 +599,14 @@ function ImagePlot(argsMap){
 		// Calculate the value from this date by determining the 'index'
 		// within the data array that applies to this value
 		var indexX = 0;
+		
 		for (var i = 0; i < data.h_axis.length; i++) {
 			if (data.h_axis[i]<xValue){
 				indexX = i;
 			}
 		};
 
-		if(indexX >= data.h_axis.length) {
+		if (indexX >= data.h_axis.length) {
 			indexX = data.h_axis.length-1;
 		}
 
@@ -636,6 +621,7 @@ function ImagePlot(argsMap){
 		if(indexY >= data.v_axis.length) {
 			indexY = data.v_axis.length-1;
 		}
+		
 		// The date we're given is interpolated so we have to round off to get the nearest
 		// index in the data array for the xValue we're given.
 		// Once we have the index, we then retrieve the data from the d[] array
@@ -643,13 +629,13 @@ function ImagePlot(argsMap){
 		indexY = Math.round(indexY);
 		try {
 			// This index may not have been measured yet
-			var v = d[indexY][indexX];
+			var v = data.values[indexY][indexX];
 		}
 		catch (err){
 			var v = 0.0;
 		}
 
-		var roundToNumDecimals = data.rounding[dataSeriesIndex];
+		var roundToNumDecimals = data.rounding[0];
 
 		return {value: roundNumber(v, roundToNumDecimals), x_val: roundNumber(xValue, 3), y_val: roundNumber(yValue, 3)};
 	}
@@ -673,48 +659,13 @@ function ImagePlot(argsMap){
 
 	var redrawAxes = function(withTransition) {
 		initZ();
-		initY();
-		initX();
 		
-		if(withTransition) {
-			// slide x-axis to updated location
-			graph.selectAll("g .x.axis").transition()
-			.duration(transitionDuration)
-			.ease("linear")
-			.call(xAxis)				  
-		
-			// slide y-axis to updated location
-			graph.selectAll("g .y.axis.left").transition()
-			.duration(transitionDuration)
-			.ease("linear")
-			.call(yAxis)
-			
-		} else {
-			// slide x-axis to updated location
-			graph.selectAll("g .x.axis")
-			.call(xAxis)				  
-		
-			// slide y-axis to updated location
-			graph.selectAll("g .y.axis.left")
-			.call(yAxis)
-		}
 	}
 
 	var redrawImage = function(withTransition) {
 
-		im = document.getElementsByClassName('image-map');
-		im[0].parentElement.removeChild(im[0]);
+		drawImage(d3.select(".image-map"))
 
-		image = d3.select("#" + containerId).append("canvas")
-			.attr("class", "image-map")
-			.attr("width", data.h_axis.length)
-      		.attr("height", data.v_axis.length)
-			.attr("width", w + margin[1] + margin[3] + "px")
-			.attr("height", h + margin[0] + margin[2] + "px")	
-			.append("svg:g")
-			.attr("transform", "translate(" + margin[3] + "," + margin[0] + ")")
-			.call(drawImage);
-		
 	}
 
 	/**
@@ -759,19 +710,18 @@ function ImagePlot(argsMap){
 				.attr("font-size", legendFontSize)
 				.attr("fill", function(d, i) {
 					// return the color for this row
-					return data.colors[data.colors.length-1];
+					return color[maxValuesZ[0]];
 				})
 				.attr("y", function(d, i) {
 					return h+28;
 				})
 
-				
 		// put in placeholders with 0 width that we'll populate and resize dynamically
 		legendLabelGroup.append("svg:text")
 				.attr("class", "legend value")
 				.attr("font-size", legendFontSize)
 				.attr("fill", function(d, i) {
-					return data.colors[data.colors.length-1];
+					return color[maxValuesZ[0]];
 				})
 				.attr("y", function(d, i) {
 					return h+28;

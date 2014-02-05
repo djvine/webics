@@ -15,7 +15,7 @@ svg.image-graph .axis {
 }
 
 svg.image-graph .x.axis line {
-  stroke: #D3D3D3;
+  stroke: #A9A9A9;
 }
 
 svg.image-graph .x.axis .minor {
@@ -30,13 +30,20 @@ svg.image-graph .x.axis text {
 	font-size: 10px;
 }
 
-svg.image-graph .y.axis line, .y.axis path {
-  fill: none;
-  stroke: #000;
+svg.image-graph .y.axis line {
+  stroke: #A9A9A9;
+}
+
+svg.image-graph .y.axis .minor {
+  stroke-opacity: .5;
+}
+
+svg.image-graph .y.axis path {
+  display: none;
 }
 			
 svg.image-graph .y.axis text {
-	font-size: 12px;
+	font-size: 10px;
 }
 
 svg.image-graph .scale-button:not(.selected):hover {
@@ -46,5 +53,9 @@ svg.image-graph .scale-button:not(.selected):hover {
 
 svg.image-graph .date-label {
 	fill: #6E7B8B;
+}
+svg,
+canvas {
+  position: absolute;
 }
 
