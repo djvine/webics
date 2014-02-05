@@ -73,7 +73,8 @@ function ImagePlot(argsMap){
 	var legendFontSize = 12; // we can resize dynamically to make fit so we remember it here
 	// instance storage of data to be displayed
 	var data;
-		
+	var det;
+
 	// define dimensions of graph
 	var margin = [-1, -1, -1, -1]; // margins (top, right, bottom, left)
 	var w, h;	 // width & height
@@ -109,6 +110,9 @@ function ImagePlot(argsMap){
 		margin[2] = getOptionalVar(argsMap, 'marginBottom', 35) // marginBottom allows fitting the legend along the bottom
 		margin[3] = getOptionalVar(argsMap, 'marginLeft', 35) // marginLeft allows fitting the axis labels
 		
+		// Get detector to plot
+		det = getRequiredVar(argsMap, 'det')
+
 		// assign instance vars from dataMap
 		data = processDataMap(getRequiredVar(argsMap, 'data'));
 		
@@ -156,8 +160,10 @@ function ImagePlot(argsMap){
 	*/
 	var initDimensions = function() {
 		// automatically size to the container using JQuery to get width/height
-		w = data.v_axis.length;//$("#" + containerId).width() - margin[1] - margin[3]; // width
-		h = data.h_axis.length;//$("#" + containerId).height() - margin[0] - margin[2]; // height
+		//w = data.v_axis.length;
+		//h = data.h_axis.length;
+		w = $("#" + containerId).width() - margin[1] - margin[3]; // width
+		h = $("#" + containerId).height() - margin[0] - margin[2]; // height
 		
 		// make sure to use offset() and not position() as we want it relative to the document, not its parent
 		hoverLine1XOffset = margin[3]+$(container).offset().left;
@@ -167,15 +173,16 @@ function ImagePlot(argsMap){
 	}
 
 	var processDataMap = function(dataMap) {
+
 		// assign data values to plot over time
 		var h_axis = getRequiredVar(dataMap, 'x', "The data object must contain a 'x' value with a data array.");
 		var v_axis = getRequiredVar(dataMap, 'y', "The data object must contain a 'y' value with a data array.");
-		var det = getRequiredVar(dataMap, 'det', "The data object must specify a detector.");
+		//var det = getRequiredVar(dataMap, 'det', "The data object must specify a detector.");
 		var displayColor = getOptionalVar(dataMap, 'display_color', "blues");
 		var true_aspect = getOptionalVar(dataMap, 'true_aspect_ratio', false)
 
-		h = h_axis.length;
-		w = v_axis.length;
+		//h = h_axis.length;
+		//w = v_axis.length;
 
 
 		// Loop over all 
@@ -247,10 +254,10 @@ function ImagePlot(argsMap){
 		
 	    image = d3.select("#" + containerId).append("canvas")
 				.attr("class", "image-map")
-				.attr("width", w + margin[1]+margin[2])
-	      		.attr("height", h + margin[0]+margin[3])
-				.style("width", w )
-      			.style("height", h )
+				.attr("width", 	w + margin[1]+margin[2]+'px')
+	      		.attr("height", h + margin[0]+margin[3]+'px')
+				.style("width", w + margin[1]+margin[2]+'px' )
+      			.style("height", h + margin[0]+margin[3]+'px' )
 				.call(drawImage);
 		
 		
@@ -456,8 +463,9 @@ function ImagePlot(argsMap){
 	// Compute the pixel colors; scaled by CSS.
   	function drawImage(canvas) {
 	    var context = canvas.node().getContext("2d"),
-	    image = context.createImageData(data.h_axis.length, data.v_axis.length);
-
+	    //image = context.createImageData(data.h_axis.length, data.v_axis.length);
+	    image = context.createImageData(w, h);
+		
 	    for (var y = 0, p = -1; y < data.values.length; ++y) {
 	      for (var x = 0; x < data.values[0].length; ++x) {
 	        var c = d3.rgb(color(data.values[y][x]));
@@ -467,7 +475,7 @@ function ImagePlot(argsMap){
 	        image.data[++p] = 255;
 	      }
 	    }
-
+	    
 	    context.putImageData(image, margin[3], margin[0]);
   	}
 
