@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'scans',
     'chat',
     'det_buttons',
+    'history',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -95,6 +96,7 @@ STATICFILES_DIRS = (
     '/home/david/web/dev/webics/scan/static',
     '/home/david/web/dev/webics/chat/static',
     '/home/david/web/dev/webics/det_buttons/static',
+    '/home/david/web/dev/webics/history/static',
 )
 
 TEMPLATE_DIRS = (
@@ -102,4 +104,5 @@ TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/scans/templates',
   '/home/david/web/dev/webics/chat/templates',
   '/home/david/web/dev/webics/det_buttons/templates',
+  '/home/david/web/dev/webics/history/templates',
 )

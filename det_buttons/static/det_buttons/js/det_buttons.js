@@ -6,26 +6,30 @@ function zeroPad(num, places) {
 	return Array(+(zero > 0 && zero)).join("0") + num;
 }
 
-var toggle_button_state = function (button_id)
-{
-	d3.select("#"+button_id).classed("btn-success", function(d, i){
-		if (this.className.indexOf('btn-success')==-1){
-			if (selected_detectors.indexOf(this.id)==-1){
-				selected_detectors.push(this.id)
-			}
-			console.log(selected_detectors);
-			return true
-		} else {
-			if (selected_detectors.length>1){
-				if (selected_detectors.indexOf(this.id)>-1){
-					selected_detectors.splice(selected_detectors.indexOf(this.id), 1)
-				}
-			}
-			console.log(selected_detectors);
-			return false;
-		}
+function hasClass( elem, klass ) {
+     return (" " + elem.className + " " ).indexOf( " "+klass+" " ) > -1;
+}
 
-	})
+var toggle_button_state = function (self)
+{
+	if (hasClass(self, 'btn-primary')){ // Not Selected
+		self.className = "btn btn-success btn-xs";
+		var index = selected_detectors.indexOf(self.id);
+		if (index == -1){
+			selected_detectors.push(self.id);
+			$(document.body).trigger('DetButtons:selection', [self.id]);
+		}
+	}
+	else {
+		if (selected_detectors.length > 1){
+			self.className = "btn btn-primary btn-xs";
+			var index = selected_detectors.indexOf(self.id);
+			if (index > -1) {
+	    		selected_detectors.splice(index, 1);
+	    		$(document.body).trigger('DetButtons:deselection', [self.id])
+			}
+		}
+	}
 }
 
 var update_active_detectors = function (){
@@ -37,10 +41,26 @@ var update_active_detectors = function (){
 	}
 }
 
+var update_selected_detectors = function (){
+	for (var i = selected_detectors.length - 1; i >= 0; i--) {
+		document.getElementById(selected_detectors[i]).className = "btn btn-success btn-xs";
+	};
+}
+
 var _init_buttons = function() {
 	update_active_detectors();
+	update_selected_detectors();
 }
 
 $(document).ready(function(){
 	_init_buttons();
+
+	$(document.body).on('DetButtons:selection', function(event, param) {
+    	console.log('A button selected '+ param);
+	});
+	$(document.body).on('DetButtons:deselection', function(event, param) {
+    	console.log('A button was deselected '+ param);
+	});
 })
+
+
