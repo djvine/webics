@@ -1,0 +1,9 @@
+{% for det in dets %}
+	{% if det == 'D01' or det == 'D08' or det == 'D15' or det == 'D22' or det == 'D29' or det == 'D36' or det == 'D43' or det == 'D50' or det == 'D57' or det == 'D64'%}
+	<div class='detrows text-center'>
+	{% endif %}
+		<button onclick="toggle_button_state(this.id)" type="button" class="btn btn-primary btn-xs" id="{{ det }}">{{ det }}</button>
+	{% if det == 'D07' or det == 'D14' or det == 'D21' or det == 'D28' or det == 'D35' or det == 'D42' or det == 'D49' or det == 'D56' or det == 'D63' or det == 'D70'%}
+	</div>
+	{% endif %}
+{% endfor %}

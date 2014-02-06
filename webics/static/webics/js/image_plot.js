@@ -465,7 +465,7 @@ function ImagePlot(argsMap){
 	    var context = canvas.node().getContext("2d"),
 	    //image = context.createImageData(data.h_axis.length, data.v_axis.length);
 	    image = context.createImageData(w, h);
-		
+		/*
 	    for (var y = 0, p = -1; y < data.values.length; ++y) {
 	      for (var x = 0; x < data.values[0].length; ++x) {
 	        var c = d3.rgb(color(data.values[y][x]));
@@ -475,7 +475,18 @@ function ImagePlot(argsMap){
 	        image.data[++p] = 255;
 	      }
 	    }
-	    
+	    */
+
+	   	for (var y = 0, p = -1; y < data.values.length; ++y) {
+	      for (var x = 0; x < data.values[0].length; ++x) {
+	        var c = d3.rgb(color(data.values[y][x]));
+	        p = 
+	        image.data[++p] = c.r;
+	        image.data[++p] = c.g;
+	        image.data[++p] = c.b;
+	        image.data[++p] = 255;
+	      }
+	    }
 	    context.putImageData(image, margin[3], margin[0]);
   	}
 
