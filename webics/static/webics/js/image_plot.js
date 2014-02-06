@@ -24,6 +24,29 @@ function ImagePlot(argsMap){
 	/* *************************************************************** */
 	var self = this;
 
+	this.updateData = function(newData) {
+		// Get detector to plot
+		
+		det = getRequiredVar(newData, 'det');
+
+		// assign instance vars from dataMap
+		data = processDataMap(getRequiredVar(newData, 'data'));
+
+		// and then we rebind data.values to the lines
+	    //graph.selectAll("g .lines path").data(data.values)
+		redrawImage(true)
+
+		// redraw (with transition)
+		redrawAxes(true);
+
+		redrawLegend();
+		
+		handleDataUpdate();
+		
+		// fire an event that data was updated
+		$(container).trigger('LineGraph:dataModification')
+	}
+
 	this.switchToPowerScale = function() {
 		zScale = 'pow';
 		redrawAxes(true);
@@ -66,7 +89,7 @@ function ImagePlot(argsMap){
 	var container;
 	
 	// functions we use to display and interact with the graphs and lines
-	var context, image, graph, x, y, color, xAxis, yAxis, linesGroup, linesGroupText, lines, lineFunction;
+	var context, image, graph, x, y, color, xAxis, yAxis, linesGroup, linesGroupText, lines, lineFunction, w_scale, h_scale;
 	var zScale = 'linear'; // can be pow, log, linear
 	var scales = [['linear','Linear'], ['pow','Power'], ['log','Log']];
 	var hoverContainer, hoverLine1, hoverLine1XOffset, hoverLine1YOffset, hoverLine2, hoverLine2XOffset, hoverLine2YOffset, hoverLineGroup;
@@ -121,6 +144,10 @@ function ImagePlot(argsMap){
 
 		// do this after processing margins and executing processDataMap above
 		initDimensions();
+
+		w_scale = d3.scale.linear().domain([0, w]).range([0, data.h_axis.length-1])
+		h_scale = d3.scale.linear().domain([0, h]).range([0, data.v_axis.length-1])
+
 		
 		createGraph()
 		//debug("Initialization successful for container: " + containerId)	
@@ -163,7 +190,8 @@ function ImagePlot(argsMap){
 		//w = data.v_axis.length;
 		//h = data.h_axis.length;
 		w = $("#" + containerId).width() - margin[1] - margin[3]; // width
-		h = $("#" + containerId).height() - margin[0] - margin[2]; // height
+		h=w;
+		//h = $("#" + containerId).height() - margin[0] - margin[2]; // height
 		
 		// make sure to use offset() and not position() as we want it relative to the document, not its parent
 		hoverLine1XOffset = margin[3]+$(container).offset().left;
@@ -188,6 +216,7 @@ function ImagePlot(argsMap){
 		// Loop over all 
 		var dataValues = [];
 		var displayNames = [det];
+		
 		$.each(dataMap, function(key,val){
 			if (!isNaN(parseInt(key))) {
 				val.forEach(function(v,i){
@@ -465,17 +494,17 @@ function ImagePlot(argsMap){
 	    var context = canvas.node().getContext("2d"),
 	    //image = context.createImageData(data.h_axis.length, data.v_axis.length);
 	    image = context.createImageData(w, h);
-		
-	    for (var y = 0, p = -1; y < data.values.length; ++y) {
-	      for (var x = 0; x < data.values[0].length; ++x) {
-	        var c = d3.rgb(color(data.values[y][x]));
+
+	    for (var y = 0, p = -1; y < h; ++y) {
+	      for (var x = 0; x < w; ++x) {
+	        var c = d3.rgb(color(data.values[Math.floor(h_scale(y))][Math.floor(w_scale(x))]));
 	        image.data[++p] = c.r;
 	        image.data[++p] = c.g;
 	        image.data[++p] = c.b;
 	        image.data[++p] = 255;
 	      }
 	    }
-	    
+
 	    context.putImageData(image, margin[3], margin[0]);
   	}
 
@@ -666,13 +695,17 @@ function ImagePlot(argsMap){
 	};
 
 	var redrawAxes = function(withTransition) {
+		initX();
+		initY();
 		initZ();
 		
 	}
 
 	var redrawImage = function(withTransition) {
 
-		drawImage(d3.select(".image-map"))
+		lg = document.getElementsByClassName('image-map');
+		lg[0].parentElement.removeChild(lg[0]);
+		createGraph()
 
 	}
 
@@ -736,6 +769,27 @@ function ImagePlot(argsMap){
 				})
 				
 		// x values are not defined here since those get dynamically calculated when data is set in displayValueLabelsForPositionX()
+	}
+
+	var redrawLegend = function(){
+		lg = document.getElementsByClassName('legend-group');
+		lg[0].parentElement.removeChild(lg[0]);
+		createLegend();
+	}
+
+	/*
+	* Handler for when data is updated.
+	*/
+	var handleDataUpdate = function() {
+		if(userCurrentlyInteracting) {
+			// user is interacting, so let's update values to wherever the mouse/finger is on the updated data
+			if(currentUserPositionX > -1) {
+				displayValueLabelsForPositionX(currentUserPositionX)
+			}
+		} else {
+			// the user is not interacting with the graph, so we'll update the labels to the latest
+			setValueLabelsToLatest();
+		}
 	}
 
 	var error = function(message) {
