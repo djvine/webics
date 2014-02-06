@@ -19,16 +19,17 @@ from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadat
 # redis
 import redis
 
-n_client_listeners = 2 # Number of client listeners to start per beamline
 redis_server=redis.Redis(host='localhost', port=6379, db=0)
 
 class ClientListener(threading.Thread):
     # Listen for clients asking for historical data
-    def __init__(self, r):
+    def __init__(self, r, ioc_name, beamline):
         threading.Thread.__init__(self)
         self.redis = r
+        self.ioc_name = ioc_name
+        self.beamline = beamline
         self.pubsub = self.redis.pubsub()
-        self.pubsub.subscribe('hist_data_request')
+        self.pubsub.subscribe('hist_request')
 
     def get_historical_data(self, item):
         if type(item['data']) in [int, long]:
@@ -36,6 +37,7 @@ class ClientListener(threading.Thread):
 
         print 'Received hist data request'
         beamline, scan_id, client_id = item['data'].split(',')
+
 
         cache = {}
         try:
@@ -48,20 +50,22 @@ class ClientListener(threading.Thread):
             cache['scan_data'] = {}
             for entry in s.data.values():
                 if entry['pvname']=='x':
-                    cache['scan_data']['x'] = {'name': entry['pvname'], 
-                                               'values': cPickle.loads(str(entry['value'])).tolist()}
+                    cache['scan_data']['x'] = {'name': 'x','values': cPickle.loads(str(entry['value']))}
+                elif entry['pvname']=='y':
+                    cache['scan_data']['y'] = {'name': 'y','values': cPickle.loads(str(entry['value']))}
                 else:
                     try:
                         cache['scan_data'][entry['row']]
                     except:
                         cache['scan_data'][entry['row']] = []
                     cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3], 
-                                                             'values': cPickle.loads(str(entry['value'])).tolist()})
+                                                             'values': cPickle.loads(str(entry['value']))})
 
-            self.redis.publish('hist_data_reply', json.dumps({'hist_data': cache, 'client_id': client_id}))
+            self.redis.publish('hist_reply', json.dumps({'data': cache, 'client_id': client_id}))
             print 'Sent hist data response'
         except:
-            print 'Error: no scan_id there'
+            print 'Error: Unable to retrieve or send data'
+            raise
 
     def run(self):
         for item in self.pubsub.listen():
@@ -70,18 +74,23 @@ class ClientListener(threading.Thread):
                 print self, "unsubscribed and finished"
                 break
             else:
-                self.get_historical_data(item)
+                if type(item['data']) in [int, long]:
+                    continue
+                else:
+                    if item['data'].split(',')[0] == self.beamline:
+                        self.get_historical_data(item)
 
 
 class ScanListener(threading.Thread):
-    def __init__(self, r, ioc_name):
+    def __init__(self, r, ioc_name, beamline):
         threading.Thread.__init__(self)
         self.redis = r
         self.ioc_name = ioc_name
+        self.beamline = beamline
         self.pref1d = self.ioc_name+':scan1'
         self.pref2d = self.ioc_name+':scan2'
         self.pubsub = self.redis.pubsub()
-        self.pubsub.subscribe('new_scan')
+        self.pubsub.subscribe('scan_begin')
         self.pvs = {}
 
         self.connect_pvs()
@@ -125,9 +134,7 @@ class ScanListener(threading.Thread):
         # Runs once per scan.
         # Publish current scan data on redis channel and cache locally
         # At the conclusion of the scan store completed scan info to database
-        if type(item['data']) in [int, long]:
-            return
-        item['data'] = cPickle.loads(item['data'])
+
         print item['channel'], ":", item['data']['pvname']
 
         print '{:s} Engaged: Scan {:s}'.format(self, self.ioc_name)
@@ -154,13 +161,13 @@ class ScanListener(threading.Thread):
         scan_id = self.pvs[self.ioc_name+':saveData_baseName'].get()+'{:04d}'.format(self.pvs[self.ioc_name+':saveData_scanNumber'].get()-1)
         cache = {}
 
-        cache['scan'] = {'scan_id': scan_id, 'ts': datetime.datetime.now()}
+        cache['scan'] = {'scan_id': scan_id, 'ts': cPickle.dumps(datetime.datetime.now())}
         x_dim = self.pvs[self.pref1d+'.NPTS'].get()
         y_dim = self.pvs[self.pref2d+'.NPTS'].get()
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': 0}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': 0})
-        cache['scan_dets'] = [ self.pref1d+'.D{:02}CA'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
+        cache['scan_dets'] = [ i for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
 
         if x_dim>1:
             p1sp = self.pvs[self.pref1d+'.P1SP'].get()
@@ -191,26 +198,21 @@ class ScanListener(threading.Thread):
             pref2d_p1pa = np.array([0.0])
 
         cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
-                                  {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()},
-                                  {'pvname': self.pref2d+'.P1PA', 'value': pref2d_p1pa.tolist()}]
-        json_cache = cache.copy()
+                                  {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()}]
+        
         cache['scan_data'] = {}
-        json_cache['scan_data'] = {}
-        json_cache['scan_data']['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
-        json_cache['scan_data']['0'] = []
-        json_cache['scan_dets'] = []
+        cache['scan_data']['y'] = {'name': cache['scan_metadata'][1]['value'], 'values': pref2d_p1pa.tolist() }
+        cache['scan_data']['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
+        cache['scan_data']['0'] = []
         
         for detector in cache['scan_dets']:
-            json_cache['scan_dets'].append(detector.split('.')[1][:3])
-            cache['scan_data'][detector.split('.')[1][:3]+'_0'] = {'pvname': detector, 'row': 0, 'value': np.zeros((x_dim))}
-            json_cache['scan_data']['0'].append(
-                {'name': detector.split('.')[1][:3], 'values': np.zeros((x_dim)).tolist()}
+            cache['scan_data']['0'].append(
+                {'name': 'D{:02d}'.format(detector), 'values': np.zeros((1)).tolist()}
             )
 
-        json_cache['scan']['ts'] = json_cache['scan']['ts'].strftime("%a %d %b %H:%M")
-        self.redis.publish(self.ioc_name, json.dumps({'new_scan': json_cache}))
-        updates = {}
-        updates['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
+        cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
+        self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
+        
         n_loops = 0L
         then = time.time()
         cpt = -1
@@ -224,21 +226,18 @@ class ScanListener(threading.Thread):
             new_cpt = self.pvs[self.pref1d+'.CPT'].get()
             if cpt != new_cpt:
                 cpt = new_cpt
-                updates['{:d}'.format(row)]=[]
+                cache['scan_data']['{:d}'.format(row)]=[]
                 if cpt>0:
                     for detector in cache['scan_dets']:
-                        cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
-                                                    'row': row, 'value': self.pvs[detector].get()[:cpt]}
-                        
-                        updates['{:d}'.format(row)].append({
-                            'name': detector.split('.')[1][:3], 
-                            'values': cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist()
-                        })
+                        cache['scan_data']['{:d}'.format(row)].append({
+                            'name': 'D{:02d}'.format(detector), 
+                            'values': self.pvs[self.pref1d+'.D{:02d}CA'.format(detector)].get()[:cpt].tolist()
+                            })
 
-                    self.redis.publish(self.ioc_name, json.dumps({'update_scan': updates}))
+                    self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
             n_loops+=1
-            if then-time.time()>60.0:
+            if time.time()-then>60.0:
                 print "Completed {:d} loops per min".format(n_loops)
                 n_loops = 0
                 then = time.time()
@@ -247,37 +246,38 @@ class ScanListener(threading.Thread):
         new_cpt = self.pvs[self.pref1d+'.CPT'].get()
         if cpt != new_cpt:
             cpt = new_cpt
-            updates['{:d}'.format(row)]=[]
+            cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
-                cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)] = {'pvname': detector, 
-                                            'row': row, 'value': self.pvs[detector].get()[:cpt]}
-                
-                updates['{:d}'.format(row)].append({
-                    'name': detector.split('.')[1][:3], 
-                    'values': cache['scan_data'][detector.split('.')[1][:3]+'_{:d}'.format(row)]['value'].tolist()
-                })
+                cache['scan_data']['{:d}'.format(row)].append({
+                            'name': 'D{:02d}'.format(detector), 
+                            'values': self.pvs[self.pref1d+'.D{:02d}CA'.format(detector)].get()[:cpt].tolist()
+                            })
 
-            self.redis.publish(self.ioc_name, json.dumps({'update_scan': updates}))
+            self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
         # scan finished
-        s = Scan(beamline=self.ioc_name, scan_id=scan_id, ts=cache['scan']['ts'])
+        s = Scan(beamline=self.beamline, scan_id=scan_id, ts=cPickle.loads(cache['scan']['ts']))
         s.save()
         s.history.create(dim=0, completed=self.pvs[self.pref1d+'.CPT'].get(), requested=x_dim)
         if scan_dim['val']==2:
             s.history.create(dim=1, completed=self.pvs[self.pref2d+'.CPT'].get(), requested=y_dim)
         for detector in cache['scan_dets']:
-            s.detectors.create(active=detector.split('.')[1][1:3])
+            s.detectors.create(active=detector)
         for entry in cache['scan_metadata']:
             s.metadata.create(pvname=entry['pvname'], value=entry['value'])
         s.data.create(pvname='x', row=0, value=cPickle.dumps(pref1d_p1pa))
-        for val in cache['scan_data'].values():
-            s.data.create(pvname=val['pvname'], row=val['row'], value=cPickle.dumps(val['value']))
+        s.data.create(pvname='y', row=0, value=cPickle.dumps(pref2d_p1pa))
+        for key in cache['scan_data'].keys():
+            if key in ['x', 'y']:
+                s.data.create(pvname=key, row=0, value=cPickle.dumps(cache['scan_data'][key]['values']))
+            else:
+                for entry in cache['scan_data'][key]:
+                    s.data.create(pvname=self.pref1d+'.'+entry['name']+'CA', row=key, value=cPickle.dumps(entry['values']))
 
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': self.pvs[self.pref1d+'.CPT'].get()}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': self.pvs[self.pref2d+'.CPT'].get()})
-        json_cache = {'scan': cache['scan'], 'scan_hist': cache['scan_hist']}
-        self.redis.publish(self.ioc_name, json.dumps({'scan_completed': json_cache}))
+        self.redis.publish(self.beamline, json.dumps({'completed_scan': cache}))
 
         print '{:s} Disengaged'.format(self)
 
@@ -288,8 +288,13 @@ class ScanListener(threading.Thread):
                 print self, "unsubscribed and finished"
                 break
             else:
-                self.scan_monitor(item)
-
+                if type(item['data']) in [int, long]:
+                    continue
+                else:
+                    item['data'] = cPickle.loads(item['data'])
+                    print item['data']['pvname'].split(':')[0], self.ioc_name
+                    if item['data']['pvname'].split(':')[0] == self.ioc_name:
+                        self.scan_monitor(item)
 
 def epics_connect(pvname, auto_monitor=False, callback=None):
         #epics.ca.poll()
@@ -305,32 +310,32 @@ def epics_connect(pvname, auto_monitor=False, callback=None):
 
 def cb(pvname, value, **kwargs):
     print pvname, value
-    if value > 0:
-        redis_server.publish('new_scan', cPickle.dumps({'pvname': pvname, 'value': value}))
+    if value > 0 and value<4:
+        redis_server.publish('scan_begin', cPickle.dumps({'pvname': pvname, 'value': value}))
 
 def signal_handler(signal, frame):
     # catch ctrl-c and exit gracefully
     print 'exiting'
     # Add poison pills to kill processes
-    redis_server.publish('new_scan', 'KILL')
+    redis_server.publish('scan_begin', 'KILL')
     for ioc_name in scans.config.ioc_names.values():
         redis_server.publish(ioc_name, 'KILL')
-        redis_server.publish('hist_data_request', 'KILL')
+        redis_server.publish('hist_request', 'KILL')
     sys.exit(0)
 
 def mainloop():
     # Register for SIGINT before entering infinite loop
     signal.signal(signal.SIGINT, signal_handler)
     scan_listeners = {}
-    client_listeners = []
+    client_listeners = {}
 
     for i, beamline in enumerate(scans.config.ioc_names.keys()):
         ioc_name = scans.config.ioc_names[beamline]
         epics_connect(ioc_name+':ScanDim.VAL', auto_monitor=True, callback=cb)
-        scan_listeners[ioc_name] = ScanListener(redis_server, ioc_name)
+        scan_listeners[ioc_name] = ScanListener(redis_server, ioc_name, beamline)
         scan_listeners[ioc_name].start()
-        client_listeners.append(ClientListener(redis_server))
-        client_listeners[i].start()
+        client_listeners[ioc_name] = ClientListener(redis_server, ioc_name, beamline)
+        client_listeners[ioc_name].start()
 
     while True:
         time.sleep(10.0)

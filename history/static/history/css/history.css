@@ -1,0 +1,6 @@
+.highlight{
+    background-color: lightgreen;
+}
+.table-striped tbody tr.highlight:nth-child(odd) td {
+    background-color: lightgreen;
+}

@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'chat',
     'det_buttons',
     'history',
+    'socket_manager',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -97,6 +98,7 @@ STATICFILES_DIRS = (
     '/home/david/web/dev/webics/chat/static',
     '/home/david/web/dev/webics/det_buttons/static',
     '/home/david/web/dev/webics/history/static',
+    '/home/david/web/dev/webics/socket_manager/static',
 )
 
 TEMPLATE_DIRS = (

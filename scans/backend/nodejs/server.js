@@ -15,6 +15,7 @@ var people = {};
 var beamline_groups = {};
 // Scans
 var scans = {};  // Record which client id is subscribed to each beamline
+var clients = {};
 var get_realtime = {}; // Record whether client is subscribed to live updates
 var scan_data_cache = {}; // Cache the "new_scan" data for each beamline to send to clients joining during a scan.
 
@@ -76,6 +77,7 @@ scan.on("connection", function(client) {
         client.join(beamline);
         client.emit("update", "You have joined at "+beamline);
         scans[client.id] = beamline;
+        clients[client.id] = client;
         if (scan_data_cache[beamline]){
             client.emit('new_scan', scan_data_cache[beamline]);
         }
@@ -89,51 +91,47 @@ scan.on("connection", function(client) {
             if (json_ob.hasOwnProperty('new_scan')){
                 scan_data_cache[beamline] = json_ob['new_scan'];
                 if (get_realtime[client.id]==1) { // Subscribed to realtime updates
-                    client.emit('new_scan', json_ob['new_scan']);
+                    client.emit('new_scan', {'data': json_ob['new_scan']});
                 }
                 else { // Not subscribed to realtime updates
-                    client.emit('update_scan_history', {'scan': json_ob['scan'], 
-                                                        'scan_hist': json_ob['scan_hist']}
-                                )
+                    client.emit('update_scan_history', {'data': json_ob['new_scan']})
                 }
             }
             else if (json_ob.hasOwnProperty('update_scan')){
-                client.emit("update_scan", {'scan_data': json_ob['update_scan']});
+                client.emit("update_scan", {'data': json_ob['update_scan']});
             }
-            else if (json_ob.hasOwnProperty('scan_completed')){
-                client.emit('scan_completed', json_ob['scan_completed'])
+            else if (json_ob.hasOwnProperty('completed_scan')){
+                client.emit('completed_scan',{'data': json_ob['completed_scan']});
                 delete scan_data_cache[beamline];
             }
         });
 
     });
 
-    client.on('scan_select', function (beamline, scan_id, subscribe_to_realtime){
+    client.on('history_request', function (beamline, scan_id, subscribe_to_realtime){
         // Asking for latest scan?
         get_realtime[client.id] = subscribe_to_realtime;
         client.emit('update', 'client requested historical data');
         var hist_request_client = redis.createClient();
-        var hist_reply_client = redis.createClient();
-        hist_reply_client.subscribe('hist_data_reply');
-        hist_request_client.publish('hist_data_request', [beamline, scan_id, client.id]);
-        // TODO: this is an ugly hack to stop repeated messages being sent here
-        // Why does this client get fired mutliple times with each button press?
-        first = true;
-        hist_reply_client.on('message', function(channel, message){
-            if (first){
-                json_ob = JSON.parse(message);
-                scan.emit('update', client.id+' '+json_ob['client_id']);
-                client.emit('hist_data_reply', json_ob['hist_data']);
-                first = false;
-            }
-        });
+        hist_request_client.publish('hist_request', [beamline, scan_id, client.id]);
+
     });
 
 
     client.on("disconnect", function(){
         delete scans[client.id];
         delete get_realtime[client.id];
+        delete clients[client.id];
         scan.emit('update', "Somebody left.");
     });
     
+});
+
+var hist_reply_client = redis.createClient();
+hist_reply_client.subscribe('hist_reply');
+hist_reply_client.on('message', function(channel, message){
+    json_ob = JSON.parse(message);
+    console.log(json_ob['client_id'])
+    console.log(clients[json_ob['client_id']])
+    clients[json_ob['client_id']].emit('hist_reply', json_ob['data']);
 });

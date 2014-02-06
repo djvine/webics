@@ -12,7 +12,9 @@
 
 {% block content %}
 {% load staticfiles %}
-
+<script>
+  var beamline = "{{ active_tab }}";
+</script>
 {% include "chat/chat.html" %}
 
 {% endblock %}}
