@@ -10,5 +10,6 @@ urlpatterns = patterns('',
     url(r'^test_chat/', 'chat.views.chat'),
     url(r'^test_det_buttons/', 'det_buttons.views.det_buttons'),
     url(r'^test_history/', 'history.views.history'),
+    url(r'^test_lineplots/', 'lineplots.views.lineplots'),
     url(r'^admin/', include(admin.site.urls)),
 )

@@ -42,6 +42,8 @@ INSTALLED_APPS = (
     'det_buttons',
     'history',
     'socket_manager',
+    'lineplots',
+    'images',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -99,6 +101,8 @@ STATICFILES_DIRS = (
     '/home/david/web/dev/webics/det_buttons/static',
     '/home/david/web/dev/webics/history/static',
     '/home/david/web/dev/webics/socket_manager/static',
+    '/home/david/web/dev/webics/lineplots/static',
+    '/home/david/web/dev/webics/images/static',
 )
 
 TEMPLATE_DIRS = (
@@ -107,4 +111,6 @@ TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/chat/templates',
   '/home/david/web/dev/webics/det_buttons/templates',
   '/home/david/web/dev/webics/history/templates',
+  '/home/david/web/dev/webics/lineplots/templates',
+  '/home/david/web/dev/webics/images/templates',
 )
