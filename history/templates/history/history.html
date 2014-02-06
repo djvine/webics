@@ -1,0 +1,32 @@
+<h4>Scan History</h4>
+<table id="scan_history" class="table-condensed table-striped">
+
+	<thead>
+		<tr> 
+			<th>Show</th>
+		    <th>Time</th>  
+		    <th>Scan ID</th>
+		    <th>1D</th>
+		    <th>2D</th> 
+		</tr>
+	</thead>
+	<tbody>
+
+		{% for scan in recent_scans %}
+		<tr>
+			<td><button type="button" class="scan_sel btn {% if forloop.first %}btn-success{% else %}btn-primary{% endif %} btn-xs" id="{{ scan.scan_id }}"><span class="glyphicon glyphicon-play"></span></button></td>
+			<td>{{ scan.ts|date:"D d M H:i" }}</td>
+			<td>{{ scan.scan_id }}</td>
+			{% for hist in scan.history.all %}
+			<td>{{ hist.completed }}/{{ hist.requested }}</td>
+			{% endfor %}
+		</tr>
+		{% empty %}
+		<tr>
+		    <td>No scans yet.</td>
+		</tr>
+		{% endfor %}
+
+	</tbody>
+
+</table>

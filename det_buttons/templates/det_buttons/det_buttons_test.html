@@ -1,0 +1,19 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block extra_head %}
+{% load staticfiles %}
+<link href="{% static 'det_buttons/css/det_buttons.css' %}" rel="stylesheet">
+<script src="{% static 'webics/d3/d3.v3.js' %}"></script>
+<script src="{% static 'det_buttons/js/det_buttons.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% load staticfiles %}
+
+{% include "det_buttons/det_buttons.html" %}
+
+{% endblock %}}

@@ -38,6 +38,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'scans',
+    'chat',
+    'det_buttons',
+    'history',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,9 +93,16 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     '/var/www/static/',
     '/home/david/web/dev/webics/webics/static',
+    '/home/david/web/dev/webics/scan/static',
+    '/home/david/web/dev/webics/chat/static',
+    '/home/david/web/dev/webics/det_buttons/static',
+    '/home/david/web/dev/webics/history/static',
 )
 
 TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/webics/templates',
   '/home/david/web/dev/webics/scans/templates',
+  '/home/david/web/dev/webics/chat/templates',
+  '/home/david/web/dev/webics/det_buttons/templates',
+  '/home/david/web/dev/webics/history/templates',
 )

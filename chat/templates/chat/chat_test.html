@@ -1,0 +1,18 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block extra_head %}
+{% load staticfiles %}
+<link href="{% static 'chat/css/chat.css' %}" rel="stylesheet">
+<script src="{% static 'chat/js/chat.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% load staticfiles %}
+
+{% include "chat/chat.html" %}
+
+{% endblock %}}

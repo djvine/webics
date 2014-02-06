@@ -1,0 +1,28 @@
+<script>
+  var beamline = "{{ active_tab }}";
+</script>
+<h4  class="text-center">Chat</h4>
+<div>
+  <div class="span2" id="chat-people">
+      <ul id="people" class="unstyled"></ul>
+  </div>
+  <div class="span4" id="chat-messages">
+      <ul id="msgs" class="unstyled">
+  </div>
+</div>
+<div>
+    <div class="span5 offset2" id="login">
+        <form class="form-inline">
+              <input type="text" class="input-small" placeholder="Your name" id="name">
+            <input type="button" name="join" id="join" value="Join" class="btn btn-primary">
+        </form>
+    </div>
+
+    <div class="span5 offset2" id="chat">
+        <form id="2" class="form-inline">
+              <input type="text" class="input" placeholder="Your message" id="msg">
+            <input type="button" name="send" id="send" value="Send" class="btn btn-success">
+        </form>
+		  <button type="button" class="btn btn-default" id="broadcast" onclick="onbroadcast(this.id)">Broadcast</button>
+    </div>
+ </div>
