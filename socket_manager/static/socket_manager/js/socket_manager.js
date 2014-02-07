@@ -8,27 +8,27 @@ $(document).ready(function(){
     });
 
     scanSocket.on('new_scan', function(data){
-    	$(document.body).trigger('Scan:begin', data['data']);
+    	$(document.body).trigger('Scan:begin', data);
     	console.log('new scan')
     });
 
     scanSocket.on('update_scan', function(data){
-    	$(document.body).trigger('Scan:update', data['data'])
+    	$(document.body).trigger('Scan:update', data)
     	console.log('update scan')
     });
 
     scanSocket.on('completed_scan', function(data){
-    	$(document.body).trigger('Scan:end', data['data'])
+    	$(document.body).trigger('Scan:end', data)
     	console.log('completed scan')
     });
 
     scanSocket.on('update_scan_history', function(data){
-    	$(document.body).trigger('Scan:updateHistory', data['data'])
+    	$(document.body).trigger('Scan:updateHistory', data)
     	console.log('update history')
     });
 
     scanSocket.on('hist_reply', function(data){
-    	$(document.body).trigger('Scan:reply', data['data'])
+    	$(document.body).trigger('Scan:reply', data)
     	console.log('got reply')
     });
 
@@ -36,10 +36,5 @@ $(document).ready(function(){
     	console.log('Sending history request to scanSocket');
     	scanSocket.emit('history_request', beamline, scan_id, subscribe_to_realtime);
 	});
-
-    $(document.body).on('LinePlots:initial', function(event, beamline) {
-        console.log('Requesting initial data from scanSocket');
-        scanSocket.emit('history_request', beamline);
-    });
 
 });

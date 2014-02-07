@@ -91,17 +91,17 @@ scan.on("connection", function(client) {
             if (json_ob.hasOwnProperty('new_scan')){
                 scan_data_cache[beamline] = json_ob['new_scan'];
                 if (get_realtime[client.id]==1) { // Subscribed to realtime updates
-                    client.emit('new_scan', {'data': json_ob['new_scan']});
+                    client.emit('new_scan', json_ob['new_scan']);
                 }
                 else { // Not subscribed to realtime updates
-                    client.emit('update_scan_history', {'data': json_ob['new_scan']})
+                    client.emit('update_scan_history', json_ob['new_scan'])
                 }
             }
             else if (json_ob.hasOwnProperty('update_scan')){
-                client.emit("update_scan", {'data': json_ob['update_scan']});
+                client.emit("update_scan", json_ob['update_scan']);
             }
             else if (json_ob.hasOwnProperty('completed_scan')){
-                client.emit('completed_scan',{'data': json_ob['completed_scan']});
+                client.emit('completed_scan', json_ob['completed_scan']);
                 delete scan_data_cache[beamline];
             }
         });
@@ -117,14 +117,6 @@ scan.on("connection", function(client) {
 
     });
 
-    client.on('initial_data_request', function (beamline){
-        client.emit('update', 'client requested initial data');
-        var hist_request_client = redis.createClient();
-        hist_request_client.publish('hist_request', [beamline, client.id]);
-
-    });
-
-
     client.on("disconnect", function(){
         delete scans[client.id];
         delete get_realtime[client.id];
@@ -138,7 +130,5 @@ var hist_reply_client = redis.createClient();
 hist_reply_client.subscribe('hist_reply');
 hist_reply_client.on('message', function(channel, message){
     json_ob = JSON.parse(message);
-    console.log(json_ob['client_id'])
-    console.log(clients[json_ob['client_id']])
     clients[json_ob['client_id']].emit('hist_reply', json_ob['data']);
 });

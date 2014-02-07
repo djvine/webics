@@ -47,3 +47,7 @@ svg.line-graph .scale-button:not(.selected):hover {
 svg.line-graph .date-label {
 	fill: #6E7B8B;
 }
+
+.row-buttons {
+	margin-left: 30%;
+}

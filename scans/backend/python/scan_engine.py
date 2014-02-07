@@ -15,7 +15,7 @@ import epics
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings'
 import django
 import scans.config
-from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata
+from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata, flush_transaction
 # redis
 import redis
 
@@ -43,9 +43,10 @@ class ClientListener(threading.Thread):
         else:
             beamline, scan_id, client_id = item['data'].split(',')
 
-
+        print beamline, scan_id, client_id
         cache = {}
         try:
+            flush_transaction()
             s = Scan.objects.filter(beamline=beamline).filter(scan_id=scan_id).order_by('-ts')[0]
             cache['scan'] = {'scan_id': scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
             cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
@@ -172,7 +173,7 @@ class ScanListener(threading.Thread):
         cache['scan_hist'] = [{'dim': 0, 'requested': x_dim, 'completed': 0}]
         if scan_dim['val'] == 2:
             cache['scan_hist'].append({'dim': 1, 'requested': y_dim, 'completed': 0})
-        cache['scan_dets'] = [ i for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
+        cache['scan_dets'] = [ 'D{:02d}'.format(i) for i in range(1, 71) if self.pvs[self.pref1d+'.D{:02}NV'.format(i)].get()==0]
 
         if x_dim>1:
             p1sp = self.pvs[self.pref1d+'.P1SP'].get()
@@ -212,7 +213,7 @@ class ScanListener(threading.Thread):
         
         for detector in cache['scan_dets']:
             cache['scan_data']['0'].append(
-                {'name': 'D{:02d}'.format(detector), 'values': np.zeros((1)).tolist()}
+                {'name': detector, 'values': np.zeros((1)).tolist()}
             )
 
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
@@ -235,8 +236,8 @@ class ScanListener(threading.Thread):
                 if cpt>0:
                     for detector in cache['scan_dets']:
                         cache['scan_data']['{:d}'.format(row)].append({
-                            'name': 'D{:02d}'.format(detector), 
-                            'values': self.pvs[self.pref1d+'.D{:02d}CA'.format(detector)].get()[:cpt].tolist()
+                            'name': detector, 
+                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
                             })
 
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
@@ -254,8 +255,8 @@ class ScanListener(threading.Thread):
             cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
                 cache['scan_data']['{:d}'.format(row)].append({
-                            'name': 'D{:02d}'.format(detector), 
-                            'values': self.pvs[self.pref1d+'.D{:02d}CA'.format(detector)].get()[:cpt].tolist()
+                            'name': detector, 
+                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
                             })
 
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
@@ -267,7 +268,7 @@ class ScanListener(threading.Thread):
         if scan_dim['val']==2:
             s.history.create(dim=1, completed=self.pvs[self.pref2d+'.CPT'].get(), requested=y_dim)
         for detector in cache['scan_dets']:
-            s.detectors.create(active=detector)
+            s.detectors.create(active=int(detector[1:]))
         for entry in cache['scan_metadata']:
             s.metadata.create(pvname=entry['pvname'], value=entry['value'])
         s.data.create(pvname='x', row=0, value=cPickle.dumps(pref1d_p1pa))

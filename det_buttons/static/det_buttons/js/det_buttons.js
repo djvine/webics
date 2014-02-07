@@ -42,7 +42,9 @@ var update_active_detectors = function (){
 }
 
 var update_selected_detectors = function (){
+	console.log('sel det'+selected_detectors);
 	for (var i = selected_detectors.length - 1; i >= 0; i--) {
+		console.log(selected_detectors[i]);
 		document.getElementById(selected_detectors[i]).className = "btn btn-success btn-xs";
 	};
 }
@@ -60,6 +62,26 @@ $(document).ready(function(){
 	});
 	$(document.body).on('DetButtons:deselection', function(event, param) {
     	console.log('A button was deselected '+ param);
+	});
+	$(document.body).on('Scan:begin', function(event, new_data) {
+		active_detectors = [];
+    	selected_detectors = [];
+    	for (var i = 0; i < new_data['scan_dets'].length; i++) {
+    		active_detectors.push(new_data['scan_dets'][i]);
+    	};
+    	selected_detectors.push(new_data['scan_dets'][0]);
+    	update_active_detectors();
+		update_selected_detectors();
+	});
+	$(document.body).on('Scan:reply', function(event, new_data) {
+		active_detectors = [];
+    	selected_detectors = [];
+    	for (var i = 0; i < new_data['scan_dets'].length; i++) {
+    		active_detectors.push(new_data['scan_dets'][i]);
+    	};
+    	selected_detectors.push(new_data['scan_dets'][0]);
+    	update_active_detectors();
+		update_selected_detectors();
 	});
 })
 
