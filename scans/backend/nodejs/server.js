@@ -98,7 +98,9 @@ scan.on("connection", function(client) {
                 }
             }
             else if (json_ob.hasOwnProperty('update_scan')){
-                client.emit("update_scan", json_ob['update_scan']);
+                if (get_realtime[client.id]==1) { // Subscribed to realtime updates
+                    client.emit("update_scan", json_ob['update_scan']);
+                }
             }
             else if (json_ob.hasOwnProperty('completed_scan')){
                 client.emit('completed_scan', json_ob['completed_scan']);
@@ -115,6 +117,11 @@ scan.on("connection", function(client) {
         var hist_request_client = redis.createClient();
         hist_request_client.publish('hist_request', [beamline, scan_id, client.id]);
 
+    });
+
+    client.on('subscribe_to_realtime', function (){
+        // Asking for latest scan?
+        get_realtime[client.id] = 1;
     });
 
     client.on("disconnect", function(){

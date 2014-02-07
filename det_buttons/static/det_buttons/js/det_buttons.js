@@ -42,14 +42,18 @@ var update_active_detectors = function (){
 }
 
 var update_selected_detectors = function (){
-	console.log('sel det'+selected_detectors);
 	for (var i = selected_detectors.length - 1; i >= 0; i--) {
-		console.log(selected_detectors[i]);
 		document.getElementById(selected_detectors[i]).className = "btn btn-success btn-xs";
 	};
 }
 
 var _init_buttons = function() {
+	active_detectors = [];
+	selected_detectors = [];
+	for (var i = 0; i < data['scan_dets'].length; i++) {
+		active_detectors.push(data['scan_dets'][i]);
+	};
+	selected_detectors.push(data['scan_dets'][0]);
 	update_active_detectors();
 	update_selected_detectors();
 }
@@ -57,12 +61,6 @@ var _init_buttons = function() {
 $(document).ready(function(){
 	_init_buttons();
 
-	$(document.body).on('DetButtons:selection', function(event, param) {
-    	console.log('A button selected '+ param);
-	});
-	$(document.body).on('DetButtons:deselection', function(event, param) {
-    	console.log('A button was deselected '+ param);
-	});
 	$(document.body).on('Scan:begin', function(event, new_data) {
 		active_detectors = [];
     	selected_detectors = [];

@@ -37,4 +37,8 @@ $(document).ready(function(){
     	scanSocket.emit('history_request', beamline, scan_id, subscribe_to_realtime);
 	});
 
+    $(document.body).on('History:subscribe_to_realtime', function(event, beamline){
+        scanSocket.emit('subscribe_to_realtime');
+    });
+
 });
