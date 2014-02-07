@@ -8,13 +8,17 @@
 {% load staticfiles %}
 <link href="{% static 'lineplots/css/lineplots.css' %}" rel="stylesheet">
 <script src="{% static 'webics/d3/d3.v3.js' %}"></script>
+<script src="{% static 'socket_manager/js/socket_manager.js' %}"></script>
 <script src="{% static 'lineplots/js/LinePlot.js' %}"></script>
 <script src="{% static 'lineplots/js/lineplots.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 {% load staticfiles %}
-var beamline = "{{ active_tab }}"
+<script>
+	var beamline = "{{ active_tab }}";
+</script>
+
 {% include "lineplots/lineplots.html" %}
 
 {% endblock %}}

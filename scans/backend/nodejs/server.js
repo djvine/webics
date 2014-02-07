@@ -117,6 +117,13 @@ scan.on("connection", function(client) {
 
     });
 
+    client.on('initial_data_request', function (beamline){
+        client.emit('update', 'client requested initial data');
+        var hist_request_client = redis.createClient();
+        hist_request_client.publish('hist_request', [beamline, client.id]);
+
+    });
+
 
     client.on("disconnect", function(){
         delete scans[client.id];

@@ -37,4 +37,9 @@ $(document).ready(function(){
     	scanSocket.emit('history_request', beamline, scan_id, subscribe_to_realtime);
 	});
 
+    $(document.body).on('LinePlots:initial', function(event, beamline) {
+        console.log('Requesting initial data from scanSocket');
+        scanSocket.emit('history_request', beamline);
+    });
+
 });

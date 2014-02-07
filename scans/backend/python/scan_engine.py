@@ -36,7 +36,12 @@ class ClientListener(threading.Thread):
             return
 
         print 'Received hist data request'
-        beamline, scan_id, client_id = item['data'].split(',')
+        if len(item['data'].split(','))==2:
+            beamline, client_id = item['data'].split(',')
+            s = Scan.objects.filter(beamline=beamline).order_by('-ts')[0]
+            scan_id = Scan.objects.filter(beamline='djv').order_by('-ts')[0].scan_id
+        else:
+            beamline, scan_id, client_id = item['data'].split(',')
 
 
         cache = {}
