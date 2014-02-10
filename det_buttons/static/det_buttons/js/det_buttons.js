@@ -1,5 +1,6 @@
-active_detectors = ["D01", "D07"];
-selected_detectors = ["D01"];
+var active_detectors = ["D01", "D07"];
+var selected_detectors = ["D01"];
+var old_selected_detectors = [];
 
 function zeroPad(num, places) {
 	var zero = places - num.toString().length + 1;
@@ -38,6 +39,20 @@ var update_active_detectors = function (){
 		d3.select("#D"+zeroPad(i,2)).classed("disabled", function(){
 			return (active_detectors.indexOf("D"+zeroPad(i,2))==-1);
 		});
+	}
+}
+
+var select_all = function(){
+	old_selected_detectors = selected_detectors;
+	selected_detectors = active_detectors;
+}
+
+var deslect_all = function(){
+	if (old_selected_detectors.length>0){
+		selected_detectors = old_selected_detectors;
+	}
+	else {
+		selected_detectors = [active_detectors[0]];
 	}
 }
 

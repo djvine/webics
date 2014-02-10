@@ -12,8 +12,9 @@ import json
 def lineplots(request, beamline='DJV'):
 
     cache = {}
+    recent_scans = Scan.objects.filter(beamline=beamline).order_by('-ts')[:20]
     try:
-        s = Scan.objects.filter(beamline=beamline).order_by('-ts')[0]
+        s = recent_scans[0]
         cache['scan'] = {'scan_id': s.scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
         cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
                             entry in s.history.values()]
@@ -37,8 +38,7 @@ def lineplots(request, beamline='DJV'):
         raise
 
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
-    recent_scans = Scan.objects.filter(beamline=beamline).order_by('-ts')[:20]
     dets = dets = ['D{:02d}'.format(i) for i in range(1, 71)]
-    context = {'title': 'Webics Home', 'beamlines': beamlines, 'active_tab': beamline, 
+    context = {'title': 'Webics: {:s} Line Plots'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline, 
                 'data': json.dumps( cache), 'dets': dets, 'recent_scans': recent_scans}
     return render(request, 'lineplots/lineplots.html', context)

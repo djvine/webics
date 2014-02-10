@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 
 import scans.views
 import lineplots.views
+import images.views
 
 #Regex named pattern (?P<name>pattern)
 
@@ -11,5 +12,5 @@ urlpatterns = patterns('',
     # ex: /scans/2-ID-B/plots/
     url(r'^(?P<beamline>.*?)/plots/$', lineplots.views.lineplots, name='plots'),
     # ex: /scans/2-ID-B/images/
-    url(r'^(?P<beamline>.*?)/images/$', scans.views.images, name='images'),
+    url(r'^(?P<beamline>.*?)/images/$', images.views.images, name='images'),
 )
