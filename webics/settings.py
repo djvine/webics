@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'socket_manager',
     'lineplots',
     'images',
+    'scan_oview',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -103,6 +104,7 @@ STATICFILES_DIRS = (
     '/home/david/web/dev/webics/socket_manager/static',
     '/home/david/web/dev/webics/lineplots/static',
     '/home/david/web/dev/webics/images/static',
+    '/home/david/web/dev/webics/scan_oview/static',
 )
 
 TEMPLATE_DIRS = (
@@ -113,4 +115,5 @@ TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/history/templates',
   '/home/david/web/dev/webics/lineplots/templates',
   '/home/david/web/dev/webics/images/templates',
+  '/home/david/web/dev/webics/scan_oview/templates',
 )

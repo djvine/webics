@@ -1,0 +1,20 @@
+{% extends 'webics/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block extra_head %}
+{% load staticfiles %}
+
+<script src="{% static 'webics/d3/d3.v3.js' %}"></script>
+<link rel="stylesheet" href="{% static 'scan_oview/css/cal-heatmap.css' %}"/>
+<script type="text/javascript" src="{% static 'scan_oview/js/cal-heatmap.min.js' %}"></script>
+
+{% endblock %}
+
+{% block content %}
+{% load staticfiles %}
+
+
+{% endblock %}
