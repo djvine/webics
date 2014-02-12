@@ -1,13 +1,15 @@
 $(document).ready(function(){
 	var cal = new CalHeatMap();
 	cal.init({
-	itemSelector: "#cal-heatmap",
-	domain: "year",
-	subDomain: "day",
-	data: "datas-years.json",
-	start: new Date(2000, 0),
-	cellSize: 10,
-	range: 1,
-	legend: [20, 40, 60, 80]
-});
+		itemSelector: "#cal-heatmap",
+		domain: "month",
+		subDomain: "day",
+		data: data,
+		start: new Date(Math.abs(new Date()-345*24*3600*1000)),
+		cellSize: 10,
+		range: 12,
+		legend: [5, 10, 15, 20],
+		nextSelector: "#domainDynamicDimension-next",
+		previousSelector: "#domainDynamicDimension-previous"
+	});
 });

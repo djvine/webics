@@ -9,12 +9,106 @@
 
 <script src="{% static 'webics/d3/d3.v3.js' %}"></script>
 <link rel="stylesheet" href="{% static 'scan_oview/css/cal-heatmap.css' %}"/>
+<link rel="stylesheet" href="{% static 'scan_oview/css/scan_oview.css' %}"/>
 <script type="text/javascript" src="{% static 'scan_oview/js/cal-heatmap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'scan_oview/js/scan_oview.js' %}"></script>
 
 {% endblock %}
 
 {% block content %}
 {% load staticfiles %}
-
-
+<script type="text/javascript">
+	var beamline = "{{ active_tab }}";
+	{% autoescape off %}
+    var data = {{ data }};
+	{% endautoescape %}
+</script>
+<h3>Scan Chronology</h3>
+<div class="col-lg-10 col-lg-offset-1" id="cal-heatmap">
+</div>
+<table class='table table-striped'>
+	<thead>
+		<td>
+			Qty
+		</td>
+		<td>
+			Day
+		</td>
+		<td>
+			Week
+		</td>
+		<td>
+			Month
+		</td>
+		<td>
+			Year
+		</td>
+		<td>
+			&infin;
+		</td>
+	</thead>
+	<tbody>
+		<tr>
+			<td>
+				Points
+			</td>
+			<td>
+				{{ points[0] }}
+			</td>
+			<td>
+				{{ points[1] }}
+			</td>
+			<td>
+				{{ points[2] }}
+			</td>
+			<td>
+				{{ points[3] }}
+			</td>
+			<td>
+				{{ points[4] }}
+			</td>
+		</tr>
+				<tr>
+			<td>
+				Area
+			</td>
+			<td>
+				{{ area[0] }}
+			</td>
+			<td>
+				{{ area[1] }}
+			</td>
+			<td>
+				{{ area[2] }}
+			</td>
+			<td>
+				{{ area[3] }}
+			</td>
+			<td>
+				{{ area[4] }}
+			</td>
+		</tr>
+				<tr>
+			<td>
+				Scans
+			</td>
+			<td>
+				{{ scans[0] }}
+			</td>
+			<td>
+				{{ scans[1] }}
+			</td>
+			<td>
+				{{ scans[2] }}
+			</td>
+			<td>
+				{{ scans[3] }}
+			</td>
+			<td>
+				{{ scans[4] }}
+			</td>
+		</tr>
+	</tbody>
+</table>
+	
 {% endblock %}
