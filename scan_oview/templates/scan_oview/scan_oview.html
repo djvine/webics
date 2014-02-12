@@ -23,92 +23,82 @@
     var data = {{ data }};
 	{% endautoescape %}
 </script>
-<h3>Scan Chronology</h3>
-<div class="col-lg-10 col-lg-offset-1" id="cal-heatmap">
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Scan Activity</h3>
+  </div>
+  <div class="panel-body">
+    <div class="col-lg-10 col-lg-offset-1" id="cal-heatmap"></div>
+  </div>
 </div>
-<table class='table table-striped'>
-	<thead>
-		<td>
-			Qty
-		</td>
-		<td>
-			Day
-		</td>
-		<td>
-			Week
-		</td>
-		<td>
-			Month
-		</td>
-		<td>
-			Year
-		</td>
-		<td>
-			&infin;
-		</td>
-	</thead>
-	<tbody>
-		<tr>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+  	<h3 class="panel-title">Scan Summary</h3>
+  </div>
+	<table class='table table-striped'>
+		<thead>
 			<td>
-				Points
 			</td>
 			<td>
-				{{ points[0] }}
+				<strong>Day</strong>
 			</td>
 			<td>
-				{{ points[1] }}
+				<strong>Week</strong>
 			</td>
 			<td>
-				{{ points[2] }}
+				<strong>Month</strong>
 			</td>
 			<td>
-				{{ points[3] }}
+				<strong>Year</strong>
 			</td>
 			<td>
-				{{ points[4] }}
+				<strong>All</strong>
 			</td>
-		</tr>
-				<tr>
-			<td>
-				Area
-			</td>
-			<td>
-				{{ area[0] }}
-			</td>
-			<td>
-				{{ area[1] }}
-			</td>
-			<td>
-				{{ area[2] }}
-			</td>
-			<td>
-				{{ area[3] }}
-			</td>
-			<td>
-				{{ area[4] }}
-			</td>
-		</tr>
-				<tr>
-			<td>
-				Scans
-			</td>
-			<td>
-				{{ scans[0] }}
-			</td>
-			<td>
-				{{ scans[1] }}
-			</td>
-			<td>
-				{{ scans[2] }}
-			</td>
-			<td>
-				{{ scans[3] }}
-			</td>
-			<td>
-				{{ scans[4] }}
-			</td>
-		</tr>
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					Total Points
+				</td>
+				<td>
+					{{ points.0 }}
+				</td>
+				<td>
+					{{ points.1 }}
+				</td>
+				<td>
+					{{ points.2 }}
+				</td>
+				<td>
+					{{ points.3 }}
+				</td>
+				<td>
+					{{ points.4 }}
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Total Scans
+				</td>
+				<td>
+					{{ scans.0 }}
+				</td>
+				<td>
+					{{ scans.1 }}
+				</td>
+				<td>
+					{{ scans.2 }}
+				</td>
+				<td>
+					{{ scans.3 }}
+				</td>
+				<td>
+					{{ scans.4 }}
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
 	
 {% endblock %}
