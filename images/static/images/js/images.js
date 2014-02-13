@@ -43,17 +43,7 @@ $(document).ready(function(){
 	});
 
 	$(document.body).on('Scan:update', function(event, new_data){
-		data = new_data;
-		known_n_rows = Object.keys(data['scan_data']).length-2;
-		for (var i = 0; i<data['scan_hist'].length; i++) {
-        	if (i==0){
-        		s = data['scan_data'][known_n_rows-1][0].values.length+'/'+data['scan_hist'][0]['requested'];
-        	}
-        	else {
-        		s = (known_n_rows-1)+'/'+data['scan_hist'][i]['requested'];
-        	}
-            document.getElementById('scan_history').rows[1].cells[3+i].innerHTML = s;
-        };
+
 		create_images();
 	});
 

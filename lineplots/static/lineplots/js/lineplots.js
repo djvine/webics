@@ -55,15 +55,6 @@ $(document).ready(function(){
         data = new_data;
         l1.updateData(data['scan_data'], current_row, selected_detectors);
         update_row_button_state();
-        for (var i = 0; i<data['scan_hist'].length; i++) {
-        	if (i==0){
-        		s = data['scan_data'][known_n_rows-1][0].values.length+'/'+data['scan_hist'][0]['requested'];
-        	}
-        	else {
-        		s = (known_n_rows-1)+'/'+data['scan_hist'][i]['requested'];
-        	}
-            document.getElementById('scan_history').rows[1].cells[3+i].innerHTML = s;
-        };
 	});
 
 	$(document.body).on('DetButtons:selection', function(event, param) {
