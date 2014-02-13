@@ -2,11 +2,12 @@ from fabric.api import lcd, local
 
 home = '/home/david'
 prod = '/usr/local/www/webics.com'
+dev = home+'/web/dev/webics'
 
 def prepare_deployment():
-
-    local('python manage.py collectstatic')
-    local('git add -p && git commit -a -m "Prepared for deployment to apache server"')
+	with lcd(dev):
+		local('python manage.py collectstatic')
+    	local('git add -p && git commit -a -m "Prepare for deployment to apache server"')
 
 def deploy():
     with lcd(prod):
