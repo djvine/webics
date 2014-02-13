@@ -6,7 +6,7 @@ prod = '/usr/local/www/webics.com'
 def prepare_deployment():
 
     local('python manage.py collectstatic')
-    local('git add -p && git commit')
+    local('git add -p && git commit -m "Prepared for deployment to apache server"')
 
 def deploy():
     with lcd(prod):
