@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'lineplots',
     'images',
     'scan_oview',
+    'overview',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -105,6 +106,7 @@ STATICFILES_DIRS = (
     '/home/david/web/dev/webics/lineplots/static',
     '/home/david/web/dev/webics/images/static',
     '/home/david/web/dev/webics/scan_oview/static',
+    '/home/david/web/dev/webics/overview/static',
 )
 
 TEMPLATE_DIRS = (
@@ -116,4 +118,5 @@ TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/lineplots/templates',
   '/home/david/web/dev/webics/images/templates',
   '/home/david/web/dev/webics/scan_oview/templates',
+  '/home/david/web/dev/webics/overview/templates',
 )

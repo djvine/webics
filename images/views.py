@@ -34,10 +34,9 @@ def images(request, beamline='DJV'):
                                                          'values': cPickle.loads(str(entry['value']))})
     except:
         print 'Error: Unable to retrieve data'
-        raise
 
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
     dets = dets = ['D{:02d}'.format(i) for i in range(1, 71)]
     context = {'title': 'Webics: {:s} Images'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline, 
-                'data': json.dumps( cache), 'dets': dets, 'recent_scans': recent_scans}
+                'data': json.dumps(cache), 'dets': dets, 'recent_scans': recent_scans}
     return render(request, 'images/images.html', context)

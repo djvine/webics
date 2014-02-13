@@ -1,12 +1,23 @@
 var n_rows, known_n_rows, current_row;
 
 $(document).ready(function(){
-	current_row = 0;
-	n_rows = Object.keys(data['scan_data']).length - 2;
-	document.getElementById('current_row').innerHTML=1+'/'+n_rows;
-
-	var l1 = new LinePlot({containerId: 'line_plot', data: data['scan_data']});
-	update_row_button_state()
+	if (Object.keys(data).length==0){
+		container = document.getElementById('line_plot');
+		alertcontainerdiv = document.createElement('div');
+		alertcontainerdiv.setAttribute('style', 'padding-top: 100px')
+		alertdiv = document.createElement('div');
+		alertdiv.setAttribute('class', 'alert alert-danger');
+		alertdiv.innerHTML = "<strong>Oh snap!</strong> Wasn't able to retrieve any scan data."
+		container.appendChild(alertcontainerdiv);
+		alertcontainerdiv.appendChild(alertdiv);
+	}
+	else{
+		current_row = 0;
+		n_rows = Object.keys(data['scan_data']).length - 2;
+		document.getElementById('current_row').innerHTML=1+'/'+n_rows;
+		var l1 = new LinePlot({containerId: 'line_plot', data: data['scan_data']});
+		update_row_button_state();
+	}
 
 	$(document.body).on('Scan:reply', function(event, new_data) {
 		current_row = 0;

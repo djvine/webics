@@ -33,6 +33,8 @@ def lineplots(request, beamline='DJV'):
                     cache['scan_data'][entry['row']] = []
                 cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3], 
                                                          'values': cPickle.loads(str(entry['value']))})
+    except IndexError:
+        print 'No scan data retrieved'
     except:
         print 'Error: Unable to retrieve data'
         raise
@@ -40,5 +42,5 @@ def lineplots(request, beamline='DJV'):
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
     dets = dets = ['D{:02d}'.format(i) for i in range(1, 71)]
     context = {'title': 'Webics: {:s} Line Plots'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline, 
-                'data': json.dumps( cache), 'dets': dets, 'recent_scans': recent_scans}
+                'data': json.dumps(cache), 'dets': dets, 'recent_scans': recent_scans}
     return render(request, 'lineplots/lineplots.html', context)

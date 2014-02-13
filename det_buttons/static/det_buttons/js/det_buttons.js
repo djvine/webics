@@ -74,7 +74,13 @@ var _init_buttons = function() {
 }
 
 $(document).ready(function(){
-	_init_buttons();
+	try {
+		_init_buttons();
+	}
+	catch(err) {
+		console.log('Unable to init detector buttons');
+	}
+	
 
 	$(document.body).on('Scan:begin', function(event, new_data) {
 		active_detectors = [];

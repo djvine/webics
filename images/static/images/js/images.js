@@ -14,7 +14,21 @@ String.prototype.format = function() {
 
 $(document).ready(function(){
 
-	create_images();
+	if (Object.keys(data).length==0){
+		container = document.getElementById('image_container');
+		alertcontainerdiv = document.createElement('div');
+		alertcontainerdiv.setAttribute('style', 'padding-top: 100px')
+		alertdiv = document.createElement('div');
+		alertdiv.setAttribute('class', 'alert alert-danger');
+		alertdiv.innerHTML = "<strong>Oh snap!</strong> Wasn't able to retrieve any scan data."
+		container.appendChild(alertcontainerdiv);
+		alertcontainerdiv.appendChild(alertdiv);
+	}
+	else {
+		create_images();
+	}
+
+	
 
 	$(document.body).on('DetButtons:selection', function(event, param) {
     	create_images();
