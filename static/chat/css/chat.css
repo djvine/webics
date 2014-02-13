@@ -1,0 +1,11 @@
+#chat-people{
+	display:block;
+    width:100%;
+    height:50px;
+}
+#chat-messages{
+	display:block;
+    width:100%;
+    height:200px;
+    overflow:auto;
+}

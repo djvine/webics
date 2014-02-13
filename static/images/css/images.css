@@ -1,0 +1,69 @@
+body {
+  padding-top: 50px;
+}
+svg.image-graph text {
+	cursor: default;
+}
+
+svg.image-graph .hover-line {
+	stroke: #6E7B8B;
+}
+
+svg.image-graph .hide {
+	opacity: 0;
+}
+				
+svg.image-graph .axis {
+  shape-rendering: crispEdges;
+}
+
+svg.image-graph .x.axis line {
+  stroke: #A9A9A9;
+}
+
+svg.image-graph .x.axis .minor {
+  stroke-opacity: .5;
+}
+
+svg.image-graph .x.axis path {
+  display: none;
+}
+			
+svg.image-graph .x.axis text {
+	font-size: 10px;
+}
+
+svg.image-graph .y.axis line {
+  stroke: #A9A9A9;
+}
+
+svg.image-graph .y.axis .minor {
+  stroke-opacity: .5;
+}
+
+svg.image-graph .y.axis path {
+  display: none;
+}
+			
+svg.image-graph .y.axis text {
+	font-size: 10px;
+}
+
+svg.image-graph .scale-button:not(.selected):hover {
+	text-decoration: underline;
+	cursor: pointer !important;
+}
+
+svg.image-graph .date-label {
+	fill: #6E7B8B;
+}
+svg,
+canvas {
+  position: absolute;
+}
+.lImage {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+}
