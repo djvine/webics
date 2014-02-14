@@ -20,6 +20,15 @@
               <input type="text" class="input" placeholder="Your message" id="msg">
             <input type="button" name="send" id="send" value="Send" class="btn btn-success">
         </form>
-		  <button type="button" class="btn btn-default" id="broadcast" onclick="onbroadcast(this.id)">Broadcast</button>
+      <!-- Single button -->
+      <div class="btn-group">
+        <button type="button" class="btn btn-primary dropdown-toggle" id="audience-button" data-toggle="dropdown">
+          Audience: {{active_tab}} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu chat-audience" role="menu">
+          <li><a href="javascript:void(0)" id="{{active_tab}}">{{ active_tab }}</a></li>
+          <li><a href="javascript:void(0)" id="broadcast">All beamlines</a></li>
+        </ul>
+      </div>
     </div>
  </div>

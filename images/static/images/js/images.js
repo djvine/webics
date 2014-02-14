@@ -52,6 +52,8 @@ $(document).ready(function(){
 		create_images();
 	});
 
+	$(this).scrollTop(0);
+
 });
 
 var update_images = function(){

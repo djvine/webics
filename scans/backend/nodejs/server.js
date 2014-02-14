@@ -22,26 +22,26 @@ var scan_data_cache = {}; // Cache the "new_scan" data for each beamline to send
 chat.on("connection", function (client) {
     client.on("join", function(name, beamline){
         people[client.id] = name + " (" + beamline +  ")";
-        if (beamline != 'broadcast'){
-            try{
-                beamline_groups[beamline].push(client);   
-            }
-            catch (err) {
-                beamline_groups[beamline] = [client];
-            }
-            client.emit("update", "You have connected to the server.");
-            chat.emit("update", name+" has joined the server.");
-            chat.emit("update-people", people);
+        
+        try{
+            beamline_groups[beamline].push(client);   
         }
+        catch (err) {
+            beamline_groups[beamline] = [client];
+        }
+        client.emit("update", "You have connected to the server.");
+        chat.emit("update", name+" has joined the server.");
+        chat.emit("update-people", people);
+        
     });
 
-    client.on("send", function(msg, beamline){
-        if (beamline=='broadcast'){
-            chat.emit("chat", people[client.id], beamline, msg);
+    client.on("send", function(msg, audience){
+        if (audience=='broadcast'){
+            chat.emit("chat", people[client.id], msg);
         }
         else {
-            for (var i = beamline_groups[beamline].length - 1; i >= 0; i--) {
-                beamline_groups[beamline][i].emit("chat", people[client.id], beamline,  msg);
+            for (var i = beamline_groups[audience].length - 1; i >= 0; i--) {
+                beamline_groups[audience][i].emit("chat", people[client.id],  msg);
             };
         }
         

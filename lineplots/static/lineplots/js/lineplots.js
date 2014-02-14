@@ -39,7 +39,7 @@ $(document).ready(function(){
 
 	$(document.body).on('Scan:update', function(event, new_data){
 		n_rows = Object.keys(data['scan_data']).length-2;
-            
+
         if (known_n_rows!=n_rows){ // a new row is available
             
             // Are we displaying latest row?
@@ -81,6 +81,7 @@ $(document).ready(function(){
 			l1.updateData(data['scan_data'], current_row, selected_detectors);
 		}
 	});
+	$(this).scrollTop(0);
 })
 
 
