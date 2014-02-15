@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
+from django.conf import settings
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -20,9 +20,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = 'c$#x%^aabbt-3#r1l_qgbs0m5m4qa$!oy3(p7^y=)kd7o4i*9k'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-TEMPLATE_DEBUG = False
+TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ['webics.com', 'www.webics.com']
 
@@ -118,3 +118,5 @@ TEMPLATE_DIRS = (
   '/home/david/web/dev/webics/scan_oview/templates',
   '/home/david/web/dev/webics/overview/templates',
 )
+
+settings.COMPRESS_ENABLED = True
