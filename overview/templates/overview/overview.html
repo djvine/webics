@@ -6,13 +6,17 @@
 
 {% block extra_head %}
 {% load staticfiles %}
+{% load compress %}
 
-<script src="{% static 'webics/d3/d3.v3.js' %}"></script>
+{% compress css %}
 <link rel="stylesheet" href="{% static 'scan_oview/css/cal-heatmap.css' %}"/>
 <link rel="stylesheet" href="{% static 'scan_oview/css/scan_oview.css' %}"/>
+{% endcompress %}
+{% compress js %}
+<script src="{% static 'webics/d3/d3.v3.js' %}"></script>
 <script type="text/javascript" src="{% static 'scan_oview/js/cal-heatmap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'scan_oview/js/scan_oview.js' %}"></script>
-
+{% endcompress %}
 {% endblock %}
 
 {% block content %}

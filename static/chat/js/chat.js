@@ -1,5 +1,6 @@
 $(document).ready(function(){
     var chatSocket = io.connect("127.0.0.1:8001/chat");
+    var audience = beamline;
     $("#chat").hide();
     $("#name").focus();
     $("form").submit(function(event){
@@ -44,7 +45,7 @@ $(document).ready(function(){
         }
     });
 
-    chatSocket.on("chat", function(who, beamline, msg){
+    chatSocket.on("chat", function(who, msg){
         if(ready) {
             $("#msgs").append("" + who + " says: " + msg + "<br>");
             $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
@@ -60,14 +61,14 @@ $(document).ready(function(){
 
     $("#send").click(function(){
         var msg = $("#msg").val();
-        chatSocket.emit("send", msg, beamline);
+        chatSocket.emit("send", msg, audience);
         $("#msg").val("");
     });
 
     $("#msg").keypress(function(e){
         if(e.which == 13) {
             var msg = $("#msg").val();
-            chatSocket.emit("send", msg, beamline);
+            chatSocket.emit("send", msg, audience);
             $("#msg").val("");
         }
     });
@@ -81,5 +82,17 @@ $(document).ready(function(){
             $("#msg").focus();
             ready = true;
         }
+    });
+
+    $(".chat-audience a").click(function(){
+        audience = this.id;
+        console.log(this.id);
+        if (this.id=='broadcast'){
+            s = 'All';
+        }
+        else {
+            s = this.id;
+        }
+        document.getElementById('audience-button').innerHTML = "Audience: "+s;
     });
 });

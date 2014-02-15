@@ -15,7 +15,6 @@ var update_scan_history = function (scan_data, scan_completed){
     else {
         class_name = "scan_sel btn btn-primary btn-xs";
     }
-    console.log(scan_data);
     
     if (scan_completed==0){
         
@@ -72,29 +71,26 @@ $(document).on("click", ".scan_sel", function(){
 $(document).ready(function(){
 
 	$(document.body).on('Scan:updateHistory', function(event, param) {
-    	console.log('Update scan history');
     	update_scan_history(param, 0);
 	});
 
 	$(document.body).on('Scan:begin', function(event, param) {
-    	console.log('Scan begin');
     	update_scan_history(param, 0);
 	});
 	
 	$(document.body).on('Scan:end', function(event, param) {
-    	console.log('Scan end');
     	update_scan_history(param, 1);
 	});
 
     $(document.body).on('Scan:update', function(event, param){
         data = param;
-        known_n_rows = Object.keys(data['scan_data']).length-2;
+        hist_known_n_rows = Object.keys(data['scan_data']).length-2;
         for (var i = 0; i<data['scan_hist'].length; i++) {
             if (i==0){
-                s = data['scan_data'][known_n_rows-1][0].values.length+'/'+data['scan_hist'][0]['requested'];
+                s = data['scan_data'][hist_known_n_rows-1][0].values.length+'/'+data['scan_hist'][0]['requested'];
             }
             else {
-                s = (known_n_rows-1)+'/'+data['scan_hist'][i]['requested'];
+                s = (hist_known_n_rows-1)+'/'+data['scan_hist'][i]['requested'];
             }
             document.getElementById('scan_history').rows[1].cells[3+i].innerHTML = s;
         };

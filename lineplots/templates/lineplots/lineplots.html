@@ -6,11 +6,15 @@
 
 {% block extra_head %}
 {% load staticfiles %}
+{% load compress %}
+
+{% compress css %}
 <link href="{% static 'chat/css/chat.css' %}" rel="stylesheet">
 <link href="{% static 'det_buttons/css/det_buttons.css' %}" rel="stylesheet">
 <link href="{% static 'history/css/history.css' %}" rel="stylesheet">
 <link href="{% static 'lineplots/css/lineplots.css' %}" rel="stylesheet">
-
+{% endcompress %}
+{% compress js %}
 <script src="{% static 'webics/d3/d3.v3.js' %}"></script>
 <script src="{% static 'chat/js/chat.js' %}"></script>
 <script src="{% static 'det_buttons/js/det_buttons.js' %}"></script>
@@ -18,6 +22,7 @@
 <script src="{% static 'lineplots/js/LinePlot.js' %}"></script>
 <script src="{% static 'lineplots/js/lineplots.js' %}"></script>
 <script src="{% static 'socket_manager/js/socket_manager.js' %}"></script>
+{% endcompress %}
 {% endblock %}
 
 {% block content %}
