@@ -113,11 +113,11 @@ function ImagePlot(argsMap){
 	var currentUserPositionY = -1;
 
 	var colorMaps = {
-			'reds': ["#fee8c8", "#fdbb84", "#e34a33"],
-			'greens' : ["#e5f5f9", "#99d8c9", "#2ca25f"],
-			'blues' : ["#ece7f2", "#a6bddb", "#2b8cbe"],
-			'purples' : ["#e7e1ef", "#c994c7", "#dd1c77"],
-			'oranges' : ["#fff7bc", "#fec44f", "#d95f0e"]
+			'reds': ["#e34a33", "#fdbb84", "#fee8c8"],
+			'greens' : ["#2ca25f", "#99d8c9", "#e5f5f9"],
+			'blues' : ["#2b8cbe", "#a6bddb", "#ece7f2"],
+			'purples' : ["#dd1c77", "#c994c7", "#e7e1ef"],
+			'oranges' : ["#d95f0e", "#fec44f", "#fff7bc"]
 		}
 	/* *************************************************************** */
 	/* initialization and validation */
@@ -494,7 +494,7 @@ function ImagePlot(argsMap){
 	    var context = canvas.node().getContext("2d"),
 	    //image = context.createImageData(data.h_axis.length, data.v_axis.length);
 	    image = context.createImageData(w, h);
-	    for (var y = 0, p = -1; y < h; ++y) {
+	    for (var y = h-1, p = -1; y >= 0; --y) {
 	    	for (var x = 0; x < w; ++x) {
 	      
 		      	if (Math.floor(h_scale(y))<data.values.length){
@@ -505,7 +505,7 @@ function ImagePlot(argsMap){
 			        image.data[++p] = 255;
 		      	}
 		      	else { 
-		      		y=h+1;
+		      		y=-1;
 		      		break;
 		      	}
 	      }
@@ -675,6 +675,7 @@ function ImagePlot(argsMap){
 			var v = data.values[indexY][indexX];
 		}
 		catch (err){
+			console.log('v err')
 			var v = 0.0;
 		}
 

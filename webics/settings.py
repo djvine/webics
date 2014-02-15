@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'images',
     'scan_oview',
     'overview',
+    'compressor',
 )
 
 MIDDLEWARE_CLASSES = (
