@@ -101,7 +101,7 @@ class ScanListener(threading.Thread):
 
         self.connect_pvs()
 
-    def epics_connect(self, pvname, auto_monitor=False, callback=None):
+    def epics_connect(self, pvname, auto_monitor=True, callback=None):
     
         if self.pvs.has_key(pvname):
             return True
@@ -237,7 +237,7 @@ class ScanListener(threading.Thread):
                     for detector in cache['scan_dets']:
                         cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector, 
-                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt).tolist()
                             })
 
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
@@ -256,7 +256,7 @@ class ScanListener(threading.Thread):
             for detector in cache['scan_dets']:
                 cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector, 
-                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt).tolist()
                             })
 
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))

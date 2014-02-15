@@ -701,7 +701,7 @@ function ImagePlot(argsMap){
 	};
 
 	var redrawAxes = function(withTransition) {
-		lg = document.getElementsByClassName('image-graph');
+		lg = $('#'+containerId)[0].getElementsByClassName('image-graph');
 		lg[0].parentElement.removeChild(lg[0]);
 		initX();
 		initY();
@@ -711,7 +711,7 @@ function ImagePlot(argsMap){
 
 	var redrawImage = function(withTransition) {
 
-		lg = document.getElementsByClassName('image-map');
+		lg = $('#'+containerId)[0].getElementsByClassName('image-map');
 		lg[0].parentElement.removeChild(lg[0]);
 		createGraph()
 
@@ -780,7 +780,7 @@ function ImagePlot(argsMap){
 	}
 
 	var redrawLegend = function(){
-		lg = document.getElementsByClassName('legend-group');
+		lg = $('#'+containerId)[0].getElementsByClassName('legend-group');
 		lg[0].parentElement.removeChild(lg[0]);
 		createLegend();
 	}
