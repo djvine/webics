@@ -208,7 +208,6 @@ function ImagePlot(argsMap){
 		//var det = getRequiredVar(dataMap, 'det', "The data object must specify a detector.");
 		var displayColor = getOptionalVar(dataMap, 'display_color', "blues");
 		var true_aspect = getOptionalVar(dataMap, 'true_aspect_ratio', false)
-
 		//h = h_axis.length;
 		//w = v_axis.length;
 

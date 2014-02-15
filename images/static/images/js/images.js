@@ -1,6 +1,8 @@
 var cols_per_row = 4;
 var ic_size = 600;
 var imgs = [];
+var colormap = 'blues';
+var colormap_options = ['blues', 'reds', 'greens', 'purples', 'oranges']
 
 String.prototype.format = function() {
     var s = this,
@@ -13,6 +15,11 @@ String.prototype.format = function() {
 };
 
 $(document).ready(function(){
+	var colomap_menu = document.getElementById('cmap-menu');
+
+	for (var i = colormap_options.length - 1; i >= 0; i--) {
+		$('ul#cmap-menu').append('<li><a href="javascript:void(0)" id="'+colormap_options[i]+'">'+colormap_options[i]+'</a></li>');
+	};
 
 	if (Object.keys(data).length==0){
 		container = document.getElementById('image_container');
@@ -28,6 +35,10 @@ $(document).ready(function(){
 		create_images();
 	}
 
+	$("#cmap-menu a").click(function(){
+		colormap = this.id;
+		create_images();
+	});
 	
 
 	$(document.body).on('DetButtons:selection', function(event, param) {
@@ -64,6 +75,8 @@ var update_images = function(){
 
 var create_images = function(){
 	create_image_divs()
+
+	data['scan_data']['display_color'] = colormap;
 
 	for (var i = 0; i < imgs.length; i++) {
 		delete imgs[i];

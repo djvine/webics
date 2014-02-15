@@ -37,12 +37,14 @@
 </div>
 <div class='col-lg-4' >
 	{% include "det_buttons/det_buttons.html" %}
-	<h4  class="text-center">Select Row</h4>
-	<span class="row-buttons">
-		<button type="button" class="btn btn-default btn-xs disabled" id="decrement_row"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
-		Row: <span id="current_row">1/1</span>
-		<button type="button" class="btn btn-default btn-xs disabled" id="increment_row"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
-	</span>
+	<!-- Single button -->
+	<div class="btn-group" style="padding-left:30%;padding-top:5%">
+	  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+	    Color Map <span class="caret"></span>
+	  </button>
+	  <ul class="dropdown-menu" id="cmap-menu" role="menu">
+	  </ul>
+	</div>
 </div>
 <div class='col-lg-4' >
 	{% include "chat/chat.html" %}
