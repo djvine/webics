@@ -84,21 +84,34 @@ $(document).ready(function(){
 
 	$(document.body).on('Scan:begin', function(event, new_data) {
 		active_detectors = [];
-    	selected_detectors = [];
     	for (var i = 0; i < new_data['scan_dets'].length; i++) {
     		active_detectors.push(new_data['scan_dets'][i]);
     	};
-    	selected_detectors.push(new_data['scan_dets'][0]);
+    	if (selected_detectors===undefined){
+    		selected_detectors = [];
+    		selected_detectors.push(new_data['scan_dets'][0]);
+    	}
     	update_active_detectors();
 		update_selected_detectors();
 	});
 	$(document.body).on('Scan:reply', function(event, new_data) {
 		active_detectors = [];
-    	selected_detectors = [];
     	for (var i = 0; i < new_data['scan_dets'].length; i++) {
     		active_detectors.push(new_data['scan_dets'][i]);
     	};
-    	selected_detectors.push(new_data['scan_dets'][0]);
+    	if (selected_detectors===undefined){
+    		selected_detectors = [];
+    		selected_detectors.push(new_data['scan_dets'][0]);
+    	}
+    	else {
+    		for (var i = selected_detectors.length - 1; i >= 0; i--) {
+    			// Check that the selected detectors all exist in the new dataset
+    			if (active_detectors.indexOf(selected_detectors[i])==-1){
+    				selected_detectors = [];
+    				selected_detectors.push(new_data['scan_dets'][0]);
+    			}
+    		};
+    	}
     	update_active_detectors();
 		update_selected_detectors();
 	});

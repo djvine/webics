@@ -239,8 +239,10 @@ class ScanListener(threading.Thread):
                         if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
                             cache['scan_data']['{:d}'.format(row)].append({
                                 'name': detector, 
-                                'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                                'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt].tolist()
                                 })
+                            if detector=="D15":
+                                print self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt]
                         else:
                             print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))
 
@@ -261,7 +263,7 @@ class ScanListener(threading.Thread):
                 if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
                     cache['scan_data']['{:d}'.format(row)].append({
                         'name': detector, 
-                        'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                        'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt].tolist()
                         })
                 else:
                     print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))

@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 import datetime
 import cPickle
-from django.db import transaction, connection
+from django.db import transaction, connections
 
 @transaction.commit_manually
 def flush_transaction():
@@ -15,7 +15,8 @@ def flush_transaction():
     "transaction-isolation = READ-COMMITTED" in my.cnf or by calling
     this function at the appropriate moment
     """
-    connection.ping(True)
+    for conn in connections.all():
+        conn.connection.ping(True)
     transaction.commit()
 
 # Create your models here.
