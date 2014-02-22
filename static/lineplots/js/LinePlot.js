@@ -760,7 +760,7 @@ function LinePlot(argsMap){
 	 * Called when a user mouses over the graph.
 	 */
 	var handleMouseOverGraph = function(event) {	
-		var mouseX = event.pageX-hoverLineXOffset+5;
+		var mouseX = event.pageX-hoverLineXOffset-1;
 		var mouseY = event.pageY-hoverLineYOffset;
 		
 		//debug("MouseOver graph [" + containerId + "] => x: " + mouseX + " y: " + mouseY + "  height: " + h + " event.clientY: " + event.clientY + " offsetY: " + event.offsetY + " pageY: " + event.pageY + " hoverLineYOffset: " + hoverLineYOffset)
