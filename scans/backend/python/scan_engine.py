@@ -235,10 +235,14 @@ class ScanListener(threading.Thread):
                 cache['scan_data']['{:d}'.format(row)]=[]
                 if cpt>0:
                     for detector in cache['scan_dets']:
-                        cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector, 
-                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
-                            })
+                        # Check PV is connected
+                        if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
+                            cache['scan_data']['{:d}'.format(row)].append({
+                                'name': detector, 
+                                'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                                })
+                        else:
+                            print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))
 
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
@@ -254,10 +258,13 @@ class ScanListener(threading.Thread):
             cpt = new_cpt
             cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
-                cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector, 
-                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
-                            })
+                if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
+                    cache['scan_data']['{:d}'.format(row)].append({
+                        'name': detector, 
+                        'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get()[:cpt].tolist()
+                        })
+                else:
+                    print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))
 
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
