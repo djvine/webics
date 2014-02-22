@@ -235,16 +235,10 @@ class ScanListener(threading.Thread):
                 cache['scan_data']['{:d}'.format(row)]=[]
                 if cpt>0:
                     for detector in cache['scan_dets']:
-                        # Check PV is connected
-                        if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
-                            cache['scan_data']['{:d}'.format(row)].append({
-                                'name': detector, 
-                                'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt].tolist()
-                                })
-                            if detector=="D15":
-                                print self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt]
-                        else:
-                            print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))
+                        cache['scan_data']['{:d}'.format(row)].append({
+                            'name': detector, 
+                            'values': epics.caget(self.pref1d+'.{:s}CA'.format(detector), count=cpt).tolist()
+                            })
 
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
@@ -260,13 +254,11 @@ class ScanListener(threading.Thread):
             cpt = new_cpt
             cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
-                if self.pvs[self.pref1d+'.{:s}CA'.format(detector)].connect():
-                    cache['scan_data']['{:d}'.format(row)].append({
-                        'name': detector, 
-                        'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].value[:cpt].tolist()
-                        })
-                else:
-                    print 'PV not connected: {:s}'.format(self.pref1d+'.{:s}CA'.format(detector))
+                cache['scan_data']['{:d}'.format(row)].append({
+                            'name': detector, 
+                            'values': epics.caget(self.pref1d+'.{:s}CA'.format(detector), count=cpt).tolist()
+                            })
+
 
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
