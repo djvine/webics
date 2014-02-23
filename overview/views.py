@@ -53,4 +53,4 @@ def overview(request):
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
     context = {'title': 'Webics: Beamlines Overview', 'beamlines': beamlines, 'active_tab': 'webics',
                 'data': json.dumps(scan_chrono), 'recent_scans': recent_scans, 'scans': n_scans, 'points': n_points}
-    return render(request, 'scan_oview/scan_oview.html', context)
+    return render(request, 'overview/overview.html', context)

@@ -23,6 +23,10 @@ $(document).ready(function(){
     	$(document.body).trigger('Scan:updateHistory', data)
     });
 
+    scanSocket.on('update_scan_history_norealtime', function(data){
+        $(document.body).trigger('Scan:updateHistoryNoRealtime', data)
+    });
+
     scanSocket.on('hist_reply', function(data){
     	$(document.body).trigger('Scan:reply', data)
     });

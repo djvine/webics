@@ -101,6 +101,9 @@ scan.on("connection", function(client) {
                 if (get_realtime[client.id]==1) { // Subscribed to realtime updates
                     client.emit("update_scan", json_ob['update_scan']);
                 }
+                else { // Not subscribed to realtime updates
+                    client.emit('update_scan_history_norealtime', json_ob['update_scan'])
+                }
             }
             else if (json_ob.hasOwnProperty('completed_scan')){
                 client.emit('completed_scan', json_ob['completed_scan']);
