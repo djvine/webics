@@ -8,6 +8,27 @@ var server = http.createServer(function(request, response) {
 }).listen(8001);
 
 var socket = io.listen(server);
+socket.configure('production', function(){
+    socket.enable('browser client minification');  // send minified client
+    socket.enable('browser client etag');          // apply etag caching logic based on version number
+    socket.enable('browser client gzip');          // gzip the file
+    socket.set('log level', 1);                    // reduce logging
+
+    // enable all transports (optional if you want flashsocket support, please note that some hosting
+    // providers do not allow you to create servers that listen on a port different than 80 or their
+    // default port)
+    socket.set('transports', [
+        'websocket'
+      , 'flashsocket'
+      , 'htmlfile'
+      , 'xhr-polling'
+      , 'jsonp-polling'
+    ]);
+});
+
+socket.configure('development', function(){
+  socket.set('log level', 3);
+});
 var chat = socket.of('/chat');
 var scan = socket.of('/scan')
 // Chat

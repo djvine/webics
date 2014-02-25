@@ -12,6 +12,15 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 from django.conf import settings
+import socket
+
+hostname = socket.gethostname()
+
+if hostname == 'lemon.xray.aps.anl.gov':
+    webics_root = '/local'
+elif hostname in ['david-laptop', 'david-APS']:
+    webics_root = '/home/david/web/dev'
+    
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -96,27 +105,27 @@ STATIC_ROOT =  os.path.join(BASE_DIR, "static")
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    '/home/david/web/dev/webics/webics/static',
-    '/home/david/web/dev/webics/chat/static',
-    '/home/david/web/dev/webics/det_buttons/static',
-    '/home/david/web/dev/webics/history/static',
-    '/home/david/web/dev/webics/socket_manager/static',
-    '/home/david/web/dev/webics/lineplots/static',
-    '/home/david/web/dev/webics/images/static',
-    '/home/david/web/dev/webics/scan_oview/static',
-    '/home/david/web/dev/webics/overview/static',
+    webics_root+'/webics/webics/static',
+    webics_root+'/webics/chat/static',
+    webics_root+'/webics/det_buttons/static',
+    webics_root+'/webics/history/static',
+    webics_root+'/webics/socket_manager/static',
+    webics_root+'/webics/lineplots/static',
+    webics_root+'/webics/images/static',
+    webics_root+'v/webics/scan_oview/static',
+    webics_root+'/webics/overview/static',
 )
 
 TEMPLATE_DIRS = (
-  '/home/david/web/dev/webics/webics/templates',
-  '/home/david/web/dev/webics/scans/templates',
-  '/home/david/web/dev/webics/chat/templates',
-  '/home/david/web/dev/webics/det_buttons/templates',
-  '/home/david/web/dev/webics/history/templates',
-  '/home/david/web/dev/webics/lineplots/templates',
-  '/home/david/web/dev/webics/images/templates',
-  '/home/david/web/dev/webics/scan_oview/templates',
-  '/home/david/web/dev/webics/overview/templates',
+  webics_root+'/webics/webics/templates',
+  webics_root+'/webics/scans/templates',
+  webics_root+'/webics/chat/templates',
+  webics_root+'/webics/det_buttons/templates',
+  webics_root+'/webics/history/templates',
+  webics_root+'/webics/lineplots/templates',
+  webics_root+'/webics/images/templates',
+  webics_root+'/webics/scan_oview/templates',
+  webics_root+'/webics/overview/templates',
 )
 
 settings.COMPRESS_ENABLED = True
