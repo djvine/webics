@@ -116,10 +116,13 @@ scan.on("connection", function(client) {
     client.on('history_request', function (beamline, scan_id, subscribe_to_realtime){
         // Asking for latest scan?
         get_realtime[client.id] = subscribe_to_realtime;
-        client.emit('update', 'client requested historical data');
         var hist_request_client = redis.createClient();
         hist_request_client.publish('hist_request', [beamline, scan_id, client.id]);
+    });
 
+    client.on('history_request_new_history', function (beamline, start_date, end_date){
+        var hist_request_new_hist_client = redis.createClient();
+        hist_request_new_hist_client.publish('hist_request_new_hist', [beamline, start_date, end_date, client.id]);
     });
 
     client.on('subscribe_to_realtime', function (){
@@ -141,4 +144,12 @@ hist_reply_client.subscribe('hist_reply');
 hist_reply_client.on('message', function(channel, message){
     json_ob = JSON.parse(message);
     clients[json_ob['client_id']].emit('hist_reply', json_ob['data']);
+});
+
+var hist_new_hist_reply_client = redis.createClient();
+hist_new_hist_reply_client.subscribe('hist_new_hist_reply');
+hist_new_hist_reply_client.on('message', function(channel, message){
+    json_ob = JSON.parse(message);
+    console.log(json_ob['data']);
+    clients[json_ob['client_id']].emit('hist_new_hist_reply', json_ob['data']);
 });

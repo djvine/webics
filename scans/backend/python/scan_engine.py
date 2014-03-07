@@ -14,6 +14,7 @@ import epics
 # django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings'
 import django
+from django.utils import timezone
 import scans.config
 from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata, flush_transaction
 # redis
@@ -30,6 +31,27 @@ class ClientListener(threading.Thread):
         self.beamline = beamline
         self.pubsub = self.redis.pubsub()
         self.pubsub.subscribe('hist_request')
+        self.pubsub.subscribe('hist_request_new_hist')
+
+
+    def get_new_history(self, item):
+        if type(item['data']) in [int, long]:
+            return
+
+        beamline, start_date, end_date, client_id = item['data'].split(',')
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+        scans = Scan.objects.filter(beamline=beamline).filter(ts__lt=end_date.replace(tzinfo=timezone.utc),
+                                                              ts__gt=start_date.replace(tzinfo=timezone.utc)).order_by('-ts')
+        cache_data = []
+        for s in scans:
+            cache = {}
+            cache['scan'] = {'scan_id': s.scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
+            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
+                                entry in s.history.values()]
+            cache_data.append(cache)
+        self.redis.publish('hist_new_hist_reply', json.dumps({'data': cache_data, 'client_id': client_id}))
 
     def get_historical_data(self, item):
         if type(item['data']) in [int, long]:
@@ -83,8 +105,12 @@ class ClientListener(threading.Thread):
                 if type(item['data']) in [int, long]:
                     continue
                 else:
-                    if item['data'].split(',')[0] == self.beamline:
-                        self.get_historical_data(item)
+                    if item['channel']=='hist_request':
+                        if item['data'].split(',')[0] == self.beamline:
+                            self.get_historical_data(item)
+                    elif item['channel'] == 'hist_request_new_hist':
+                        if item['data'].split(',')[0] == self.beamline:
+                            self.get_new_history(item)
 
 
 class ScanListener(threading.Thread):
