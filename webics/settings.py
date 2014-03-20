@@ -33,7 +33,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = ['webics.com', 'www.webics.com']
+ALLOWED_HOSTS = ['webics.xray.aps.anl.gov']
 
 
 # Application definition
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'webics.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE':'django.db.backends.mysql',
-        'NAME': 'hershel',
+        'NAME': 'webics_hershel',
         'USER': 'maggie',
         'PASSWORD': 'inthepracticeoftoleranceonesenemyisthebestteacher',
         'HOST': 'localhost',
