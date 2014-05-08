@@ -1,0 +1,16 @@
+Deps:
+MySQL
+First time?
+pacman -S mysql
+
+mysql_secure_installation
+root password
+accepts defaults
+
+mkvirtualenv --python=/usr/bin/python2.7
+
+pip install -r requirements.txt
+
+edit wsgi.py
+os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings.dev'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings.prod'
