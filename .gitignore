@@ -50,3 +50,6 @@ coverage.xml
 docs/_build/
 
 *.txt~
+
+# Django secret key
+./deploy/SECRET

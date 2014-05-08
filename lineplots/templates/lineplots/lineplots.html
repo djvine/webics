@@ -23,7 +23,11 @@
 <script src="{% static 'history/js/history.js' %}"></script>
 <script src="{% static 'lineplots/js/LinePlot.js' %}"></script>
 <script src="{% static 'lineplots/js/lineplots.js' %}"></script>
-<script src="{% static 'socket_manager/js/socket_manager.js' %}"></script>
+{% if env == "prod" %}
+<script src="{% static 'socket_manager/js/socket_manager_prod.js' %}"></script>
+{% else %}
+<script src="{% static 'socket_manager/js/socket_manager_dev.js' %}"></script>
+{% endif %}
 
 {% endcompress %}
 {% endblock %}

@@ -3,9 +3,7 @@
 
 import sys
 from os.path import abspath, basename, dirname, join, normpath
-
-from helpers import gen_secret_key
-
+from django.utils.crypto import get_random_string
 
 ########## PATH CONFIGURATION
 # Absolute filesystem path to this Django project directory.
@@ -84,22 +82,22 @@ MEDIA_URL = '/media/'
 # Absolute path to the directory static files should be collected to. Don't put
 # anything in this directory yourself; store your static files in apps' static/
 # subdirectories and in STATICFILES_DIRS.
-STATIC_ROOT = normpath(join(DJANGO_ROOT, 'static'))
+STATIC_ROOT = normpath(join(SITE_ROOT, 'static'))
 
 # URL prefix for static files.
 STATIC_URL = '/static/'
 
 # Additional locations of static files.
 STATICFILES_DIRS = (
-    '/home/david/web/dev/webics/webics/static',
-    '/home/david/web/dev/webics/chat/static',
-    '/home/david/web/dev/webics/det_buttons/static',
-    '/home/david/web/dev/webics/history/static',
-    '/home/david/web/dev/webics/socket_manager/static',
-    '/home/david/web/dev/webics/lineplots/static',
-    '/home/david/web/dev/webics/images/static',
-    '/home/david/web/dev/webics/scan_oview/static',
-    '/home/david/web/dev/webics/overview/static',
+    SITE_ROOT+'/webics/static',
+    SITE_ROOT+'/chat/static',
+    SITE_ROOT+'/det_buttons/static',
+    SITE_ROOT+'/history/static',
+    SITE_ROOT+'/socket_manager/static',
+    SITE_ROOT+'/lineplots/static',
+    SITE_ROOT+'/images/static',
+    SITE_ROOT+'/scan_oview/static',
+    SITE_ROOT+'/overview/static',
 )
 
 # List of finder classes that know how to find static files in various
@@ -107,7 +105,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 ########## END STATIC FILE CONFIGURATION
 
@@ -186,7 +184,9 @@ try:
 except IOError:
     try:
         with open(SECRET_FILE, 'w') as f:
-            f.write(gen_secret_key(50))
+            chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+            SECRET_KEY = get_random_string(50, chars)
+            f.write(SECRET_KEY)
     except IOError:
         raise Exception('Cannot open file `%s` for writing.' % SECRET_FILE)
 ########## END KEY CONFIGURATION
