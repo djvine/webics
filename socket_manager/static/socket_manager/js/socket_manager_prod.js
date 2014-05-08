@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    var scanSocket = io.connect("127.0.0.1:8001/scan");
+    var scanSocket = io.connect("164.54.113.91:8001/scan");
     scanSocket.emit("room", beamline);
 
     // For debugging

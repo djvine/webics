@@ -14,3 +14,5 @@ pip install -r requirements.txt
 edit wsgi.py
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings.dev'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings.prod'
+
+webics joule webics A38*50am !Tp0t1seitbt
