@@ -71,7 +71,7 @@ USE_TZ = True
 
 ########## MEDIA CONFIGURATION
 # Absolute filesystem path to the directory that will hold user-uploaded files.
-MEDIA_ROOT = normpath(join(DJANGO_ROOT, 'media'))
+MEDIA_ROOT = normpath(join(SITE_ROOT, 'media'))
 
 # URL that handles the media served from MEDIA_ROOT.
 MEDIA_URL = '/media/'
