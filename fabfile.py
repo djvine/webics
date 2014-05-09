@@ -14,6 +14,7 @@ def prepare_deployment():
     	    local('git push github master')
 
 def deploy():
+    prepare_deployment()
     with cd(prod):
         run('git pull origin master')
         run('service apache2 restart')
