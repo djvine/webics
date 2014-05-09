@@ -1,13 +1,9 @@
 from django.conf.urls import patterns, url
 
-import scans
-import lineplots
-import images
-import scan_oview
-from scans import views
-from lineplots import views
-from images import views
-from scan_oview import views
+import scans.views
+import lineplots.views
+import images.views
+import scan_oview.views
 
 #Regex named pattern (?P<name>pattern)
 

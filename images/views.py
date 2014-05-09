@@ -36,7 +36,7 @@ def images(request, beamline='DJV'):
         print 'Error: Unable to retrieve data'
 
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
-    dets = dets = ['D{0:02d}'.format(i) for i in range(1, 71)]
+    dets = ['D{0:02d}'.format(i) for i in range(1, 71)]
     context = {'title': 'Webics: {0:s} Images'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline,
                 'data': json.dumps(cache), 'dets': dets, 'recent_scans': recent_scans}
     return render(request, 'images/images.html', context)
