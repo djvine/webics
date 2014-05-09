@@ -10,7 +10,7 @@ env.hosts = ['webics@joule']
 def prepare_deployment():
 	with lcd(dev):
 	    local('python manage.py collectstatic --noinput')
-    	    local('git add -p && git commit -am "Prepare for deployment to apache server"')
+    	    local('git commit -am "Prepare for deployment to apache server"')
     	    local('git push github master')
 
 def deploy():

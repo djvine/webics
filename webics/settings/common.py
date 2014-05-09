@@ -120,15 +120,15 @@ TEMPLATE_LOADERS = (
 
 # Directories to search when loading templates.
 TEMPLATE_DIRS = (
-  '/home/david/web/dev/webics/webics/templates',
-  '/home/david/web/dev/webics/scans/templates',
-  '/home/david/web/dev/webics/chat/templates',
-  '/home/david/web/dev/webics/det_buttons/templates',
-  '/home/david/web/dev/webics/history/templates',
-  '/home/david/web/dev/webics/lineplots/templates',
-  '/home/david/web/dev/webics/images/templates',
-  '/home/david/web/dev/webics/scan_oview/templates',
-  '/home/david/web/dev/webics/overview/templates',
+  SITE_ROOT+'/webics/templates',
+  SITE_ROOT+'/scans/templates',
+  SITE_ROOT+'/chat/templates',
+  SITE_ROOT+'/det_buttons/templates',
+  SITE_ROOT+'/history/templates',
+  SITE_ROOT+'/lineplots/templates',
+  SITE_ROOT+'/images/templates',
+  SITE_ROOT+'/scan_oview/templates',
+  SITE_ROOT+'/overview/templates',
 )
 ########## END TEMPLATE CONFIGURATION
 

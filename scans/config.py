@@ -7,7 +7,7 @@ if hostname in ['lemon.xray.aps.anl.gov', 'joule-vm.xray.aps.anl.gov']:
 		'2-ID-B': '2idb1',
 		'2-ID-E': '2xfm',
 	}
-elif hostname in ['david-laptop', 'david-APS']:
+elif hostname in ['dusk', 'dawn']:
 
 	ioc_names = {
 		'DJV': 'djv',
