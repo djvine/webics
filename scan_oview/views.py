@@ -52,6 +52,6 @@ def scan_oview(request, beamline='DJV'):
 
     recent_scans = Scan.objects.filter(beamline=beamline).order_by('-ts')[:50]
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
-    context = {'title': 'Webics: {:s} Overview'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline, 
+    context = {'title': 'Webics: {0:s} Overview'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline,
                 'data': json.dumps(scan_chrono), 'recent_scans': recent_scans, 'scans': n_scans, 'points': n_points}
     return render(request, 'scan_oview/scan_oview.html', context)
