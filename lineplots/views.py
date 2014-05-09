@@ -41,7 +41,7 @@ def lineplots(request, beamline='DJV'):
         raise
 
     beamlines = sorted([{'beamline': bl} for bl in scans.config.ioc_names.keys()])
-    dets = dets = ['D{0:02d}'.format(i) for i in range(1, 71)]
+    dets = ['D{0:02d}'.format(i) for i in range(1, 71)]
     context = {'title': 'Webics: {0:s} Line Plots'.format(beamline), 'beamlines': beamlines, 'active_tab': beamline,
             'data': json.dumps(cache), 'dets': dets, 'recent_scans': recent_scans, 'env': settings.SOCKET_ENV}
     return render(request, 'lineplots/lineplots.html', context)
