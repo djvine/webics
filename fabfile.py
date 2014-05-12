@@ -19,7 +19,6 @@ def prepare_deployment():
 
 @hosts('webics@joule')
 def deploy():
-    prepare_deployment()
     with cd(prod):
         run('git pull origin master')
         run('service apache2 restart')
