@@ -386,10 +386,8 @@ if __name__=='__main__':
     with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
         f.write('{0:d}'.format(os.getpid()))
 
-    mainloop()
-
     try:
+        mainloop()
+    finally:
         os.remove(settings.SITE_ROOT+'/scans/backend/python/python.pid')
-    except OSError:
-        pass
 
