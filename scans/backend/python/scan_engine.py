@@ -381,12 +381,10 @@ if __name__=='__main__':
             pid = f.readline()
             if pid:
                 os.kill(int(pid), signal.SIGTERM)
-        # Store PID to ensure only one scan backend is running
-        with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
-            f.write(os.getpid())
     except IOError:
-        with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
-            f.write(os.getpid())
+        pass
+    with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
+        f.write('{0:d}'.format(os.getpid()))
 
     mainloop()
 
