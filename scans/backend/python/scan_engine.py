@@ -381,7 +381,9 @@ if __name__=='__main__':
             pid = f.readline()
             if pid:
                 os.kill(int(pid), signal.SIGTERM)
-    except IOError:
+    except IOError: #File doesn't exist
+        pass
+    except OSError: # PID doesn't exist
         pass
     with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
         f.write('{0:d}'.format(os.getpid()))
