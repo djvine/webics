@@ -12,13 +12,16 @@ import datetime
 # EPICS
 import epics
 # django
-os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings'
+#os.environ['DJANGO_SETTINGS_MODULE'] = 'webics.settings'
 import django
 from django.utils import timezone
+from django.conf import settings
 import scans.config
 from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata, flush_transaction
 # redis
 import redis
+
+
 
 redis_server=redis.Redis(host='localhost', port=6379, db=0)
 
@@ -48,7 +51,7 @@ class ClientListener(threading.Thread):
         for s in scans:
             cache = {}
             cache['scan'] = {'scan_id': s.scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
-            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
+            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for
                                 entry in s.history.values()]
             cache_data.append(cache)
         self.redis.publish('hist_new_hist_reply', json.dumps({'data': cache_data, 'client_id': client_id}))
@@ -71,7 +74,7 @@ class ClientListener(threading.Thread):
             flush_transaction()
             s = Scan.objects.filter(beamline=beamline).filter(scan_id=scan_id).order_by('-ts')[0]
             cache['scan'] = {'scan_id': scan_id, 'ts': s.ts.strftime("%a %d %b %H:%M")}
-            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for 
+            cache['scan_hist'] = [ {'dim': entry['dim'], 'completed': entry['completed'], 'requested':entry['requested']} for
                                 entry in s.history.values()]
             cache['scan_dets'] = ['D{:02d}'.format(entry['active']) for entry in s.detectors.values()]
             cache['scan_metadata'] = [{'pvname':entry['pvname'], 'value':entry['value']} for entry in s.metadata.values()]
@@ -86,7 +89,7 @@ class ClientListener(threading.Thread):
                         cache['scan_data'][entry['row']]
                     except:
                         cache['scan_data'][entry['row']] = []
-                    cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3], 
+                    cache['scan_data'][entry['row']].append({'name': entry['pvname'].split('.')[1][:3],
                                                              'values': cPickle.loads(str(entry['value']))})
 
             self.redis.publish('hist_reply', json.dumps({'data': cache, 'client_id': client_id}))
@@ -128,7 +131,7 @@ class ScanListener(threading.Thread):
         self.connect_pvs()
 
     def epics_connect(self, pvname, auto_monitor=True, callback=None):
-    
+
         if self.pvs.has_key(pvname):
             return True
 
@@ -136,7 +139,7 @@ class ScanListener(threading.Thread):
         if callback:
             p.add_callback(callback)
         self.pvs[pvname] = p
-            
+
     def connect_pvs(self):
         then = time.time()
 
@@ -153,7 +156,7 @@ class ScanListener(threading.Thread):
         for pvname in pvnames:
             for pref in [self.pref1d, self.pref2d]:
                 self.epics_connect(pref+pvname)
-        
+
         for i in range(1, 71):
             self.epics_connect(self.pref1d+'.D{:02d}NV'.format(i))
             self.epics_connect(self.pref1d+'.D{:02d}CA'.format(i))
@@ -179,7 +182,7 @@ class ScanListener(threading.Thread):
             else:
                 print 'scanH ignored'
                 return
-        elif scan_dim_val == 2: 
+        elif scan_dim_val == 2:
             if self.pvs[self.pref2d+'.EXSC'].get() == 1: # 2d scan w/no fluorescence detector
                 scan_dim = {'val': 2, 'xfd': False}
                 scan_outer_loop = self.pref2d
@@ -231,12 +234,12 @@ class ScanListener(threading.Thread):
 
         cache['scan_metadata'] = [{'pvname': self.pref1d+'.P1PV', 'value': self.pvs[self.pref1d+'.P1PV'].get()},
                                   {'pvname': self.pref2d+'.P1PV', 'value': self.pvs[self.pref2d+'.P1PV'].get()}]
-        
+
         cache['scan_data'] = {}
         cache['scan_data']['y'] = {'name': cache['scan_metadata'][1]['value'], 'values': pref2d_p1pa.tolist() }
         cache['scan_data']['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': pref1d_p1pa.tolist() }
         cache['scan_data']['0'] = []
-        
+
         for detector in cache['scan_dets']:
             cache['scan_data']['0'].append(
                 {'name': detector, 'values': np.zeros((1)).tolist()}
@@ -244,7 +247,7 @@ class ScanListener(threading.Thread):
 
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
         self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
-        
+
         n_loops = 0L
         then = time.time()
         cpt = -1
@@ -254,7 +257,7 @@ class ScanListener(threading.Thread):
                 row=0
             else:
                 row = self.pvs[self.pref2d+'.CPT'].get()
-            
+
             new_cpt = self.pvs[self.pref1d+'.CPT'].get()
             if cpt != new_cpt:
                 cpt = new_cpt
@@ -262,7 +265,7 @@ class ScanListener(threading.Thread):
                 if cpt>0:
                     for detector in cache['scan_dets']:
                         cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector, 
+                            'name': detector,
                             'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False).tolist()
                             })
 
@@ -281,7 +284,7 @@ class ScanListener(threading.Thread):
             cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
                 cache['scan_data']['{:d}'.format(row)].append({
-                    'name': detector, 
+                    'name': detector,
                     'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False).tolist()
                     })
 
@@ -373,4 +376,22 @@ def mainloop():
         time.sleep(10.0)
 
 if __name__=='__main__':
+    try:
+        with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'r') as f:
+            pid = f.readline()
+            if pid:
+                os.kill(int(pid), signal.SIGTERM)
+        # Store PID to ensure only one scan backend is running
+        with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
+            f.write(os.getpid())
+    except IOError:
+        with open(settings.SITE_ROOT+'/scans/backend/python/python.pid', 'w') as f:
+            f.write(os.getpid())
+
     mainloop()
+
+    try:
+        os.remove(settings.SITE_ROOT+'/scans/backend/python/python.pid')
+    except OSError:
+        pass
+
