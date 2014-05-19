@@ -23,7 +23,7 @@ SECRET_FILE = normpath(join(SITE_ROOT, 'deploy', 'SECRET'))
 
 ########## DEBUG CONFIGURATION
 # Disable debugging by default.
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 ########## END DEBUG CONFIGURATION
 
