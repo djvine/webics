@@ -18,6 +18,7 @@ DATABASES = {
 ########## END DATABASE CONFIGURATION
 
 
+
 ########## CACHE CONFIGURATION
 CACHES = {
     'default': {
