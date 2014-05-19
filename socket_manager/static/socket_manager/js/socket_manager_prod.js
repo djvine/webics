@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    var scanSocket = io.connect("164.54.113.91:8001/scan");
+    var scanSocket = io.connect("lemon.xray.aps.anl.gov:8001/scan");
     scanSocket.emit("room", beamline);
 
     // For debugging

@@ -1,6 +1,6 @@
 $(document).ready(function(){
     //var chatSocket = io.connect("127.0.0.1:8001/chat");
-    var chatSocket = io.connect("164.54.113.91:8001/chat");
+    var chatSocket = io.connect("lemon.xray.aps.anl.gov:8001/chat");
     var audience = beamline;
     $("#chat").hide();
     $("#name").focus();
