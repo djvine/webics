@@ -21,7 +21,6 @@ def prepare_deployment():
 def deploy():
     with cd(prod):
         run('git pull origin master')
-        run('service apache2 restart')
 
 @hosts('dvine@lemon')
 def backend():
