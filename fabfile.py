@@ -27,5 +27,5 @@ def deploy():
 def backend():
     with cd(backend_webics):
         run('git pull origin master')
-        run('./bin/check_screen.sh')
-        run('screen -S webics -X stuff /bin/bash -l -c "workon webics && python ./start_python_backend.py"$"\n"')
+        #run('./bin/check_screen.sh')
+        #run('screen -S webics -X stuff /bin/bash -l -c "workon webics && python ./start_python_backend.py"$"\n"')

@@ -8,7 +8,12 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 """
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webics.settings.dev")
+import sys
+import socket
+
+if socket.gethostname()=='joule-vm.xray.ps.anl.gov':
+    sys.path.append('/home/beams/WEBICS/webics')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webics.settings.prod")
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()

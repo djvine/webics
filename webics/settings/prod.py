@@ -12,7 +12,7 @@ DATABASES = {
         'NAME': 'webics_hershel',
         'USER': 'maggie',
         'PASSWORD': 'inthepracticeoftoleranceonesenemyisthebestteacher',
-        'HOST': 'localhost',
+        'HOST': 'joule.xray.aps.anl.gov',
     }
 }
 ########## END DATABASE CONFIGURATION
