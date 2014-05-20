@@ -22,7 +22,7 @@ def flush_transaction():
 # Create your models here.
 
 class Scan(models.Model):
-    beamline = models.CharField('Beamline', max_length=200)     
+    beamline = models.CharField('Beamline', max_length=200)
     scan_id = models.CharField('Scan ID', max_length=256)
     ts = models.DateTimeField('Scan Initiated', auto_now_add=True)
 
@@ -53,7 +53,7 @@ class ScanData(models.Model):
     value = models.TextField('Scan Value')
 
     def __unicode__(self):
-        
+
         return '{0:s} row: {1:d}'.format(self.pvname, self.row)
 
 class ScanMetadata(models.Model):

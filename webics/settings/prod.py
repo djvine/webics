@@ -4,6 +4,7 @@
 from common import *
 from os.path import join, normpath
 
+SERVER_EMAIL = 'dvine@anl.gov'
 
 ########## DATABASE CONFIGURATION
 DATABASES = {

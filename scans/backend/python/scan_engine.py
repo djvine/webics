@@ -291,6 +291,7 @@ class ScanListener(threading.Thread):
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
         # scan finished
+        flush_transaction()
         s = Scan(beamline=self.beamline, scan_id=scan_id, ts=cPickle.loads(cache['scan']['ts']))
         s.save()
         s.history.create(dim=0, completed=self.pvs[self.pref1d+'.CPT'].get(), requested=x_dim)
