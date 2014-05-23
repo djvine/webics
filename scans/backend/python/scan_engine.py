@@ -474,7 +474,7 @@ class ScanListener(threading.Thread):
                     if i_buffs == 0:
                         cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector,
-                            'values': tsum,
+                            'values': tsum.tolist(),
                             })
                     else:
                         idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
