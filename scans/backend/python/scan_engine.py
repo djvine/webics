@@ -370,13 +370,13 @@ class ScanListener(threading.Thread):
                 ]
         cache['scan_dets'] = scans.config.fly_det_config[self.beamline].keys()
         mca_dets = []
-        xfd_dets = []
+        xfd_dets = {}
         for detector in cache['scan_dets']:
             if scans.config.fly_det_config[self.beamline][detector] == 'normal':
                 mca_dets.append(detector)
             else:
                 roi = scans.config.fly_det_config[self.beamline][detector]
-                xfd_dets.append({detector: [
+                xfd_dets[detector] = [
                     self.pvs[self.xfd_pref+':mca1.{0:s}LO'.format(roi)].get(),
                     self.pvs[self.xfd_pref+':mca1.{0:s}HI'.format(roi)].get(),
                     self.pvs[self.xfd_pref+':mca2.{0:s}LO'.format(roi)].get(),
@@ -385,7 +385,7 @@ class ScanListener(threading.Thread):
                     self.pvs[self.xfd_pref+':mca3.{0:s}HI'.format(roi)].get(),
                     self.pvs[self.xfd_pref+':mca4.{0:s}LO'.format(roi)].get(),
                     self.pvs[self.xfd_pref+':mca4.{0:s}HI'.format(roi)].get()
-                    ]})
+                    ]
 
         if x_dim>1:
             p1sp = self.pvs[self.fly_pref1d+'.P1SP'].get()
