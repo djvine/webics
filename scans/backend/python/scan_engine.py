@@ -444,7 +444,8 @@ class ScanListener(threading.Thread):
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
         n_buffs = np.int(np.ceil(x_dim%pix_per_buff)) # Number of buffs per row
         i_buffs = 0
-        buffs_uid = 0 # Used to determine if there is a new buffer available
+        buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
+        buffs_uid -= 1
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             row = self.pvs[self.fly_pref2d+'.CPT'].get()
 
@@ -460,7 +461,7 @@ class ScanListener(threading.Thread):
                     cache['scan_data']['{:d}'.format(row)]=[]
                 i_buffs+=1
 
-                buff = sp.zeros((1047808),dtype=np.uint16)#self.pvs['buff_pv'].get()
+                buff = np.zeros((1047808),dtype=np.uint16)#self.pvs['buff_pv'].get()
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
