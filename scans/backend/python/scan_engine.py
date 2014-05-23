@@ -471,14 +471,14 @@ class ScanListener(threading.Thread):
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
                             tsum[i] += np.sum(buff[512+i*8448+elem*2048+xfd_dets[detector][elem*2]:512+i*8448+elem*2048+xfd_dets[detector][elem*2+1]])
-                        if i_buffs == 0:
-                            cache['scan_data']['{:d}'.format(row)].append({
-                                'name': detector,
-                                'values': tsum,
-                                })
-                        else:
-                            idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
-                            cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
+                    if i_buffs == 0:
+                        cache['scan_data']['{:d}'.format(row)].append({
+                            'name': detector,
+                            'values': tsum,
+                            })
+                    else:
+                        idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
+                        cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
 
                 i_buffs+=1
                 if i_buffs == n_buffs: # End of scan line
