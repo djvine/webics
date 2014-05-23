@@ -168,7 +168,6 @@ class ScanListener(threading.Thread):
                             self.xfd_pref+':mca{0:d}.{1:s}HI'.format(m+1, roi)
                             ])
 
-        ipdb.set_trace()
         for pvname in pvnames:
             self.epics_connect(pvname)
 
@@ -346,6 +345,7 @@ class ScanListener(threading.Thread):
         # Publish current scan data on redis channel and cache locally
         # At the conclusion of the scan store completed scan info to database
 
+        ipdb.set_trace()
         print '{:s} Engaged: Fly Scan {:s}'.format(self, self.ioc_name)
 
         scan_dim_val = item['data']['value']
@@ -460,7 +460,7 @@ class ScanListener(threading.Thread):
                     cache['scan_data']['{:d}'.format(row)]=[]
                 i_buffs+=1
 
-                buff = self.pvs['buff_pv'].get()
+                buff = sp.zeros((1047808),dtype=np.uint16)#self.pvs['buff_pv'].get()
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
