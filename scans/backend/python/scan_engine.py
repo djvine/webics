@@ -533,7 +533,7 @@ class ScanListener(threading.Thread):
                 else:
                     item['data'] = cPickle.loads(item['data'])
                     if item['data']['pvname'].split(':')[0] == self.ioc_name:
-                        if item['data']['pvname'].find('FScanDim'):
+                        if item['data']['pvname'].find('FScanDim')>-1:
                             self.fly_scan_monitor(item)
                         else:
                             self.scan_monitor(item)
