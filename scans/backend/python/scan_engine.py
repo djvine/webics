@@ -171,7 +171,7 @@ class ScanListener(threading.Thread):
         for pvname in pvnames:
             self.epics_connect(pvname)
 
-        pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.P1SI', '.P1PA', '.NPTS', '.P1RA', '.CPT']
+        pvnames = ['.EXSC', '.P1PV', '.P1SP', '.P1EP', '.P1SI', '.P1PA', '.NPTS', '.P1RA', '.CPT', '.P1AR']
         for pvname in pvnames:
             for pref in [self.pref1d, self.pref2d, self.fly_pref1d, self.fly_pref2d]:
                 self.epics_connect(pref+pvname)
