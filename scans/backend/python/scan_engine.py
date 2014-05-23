@@ -489,6 +489,7 @@ class ScanListener(threading.Thread):
                             'values': self.pvs[self.fly_pref1d+'.{:s}DA'.format(detector)].get(count=x_dim, use_monitor=False).tolist()
                             })
 
+                ipdb.set_trace()
                 self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
             n_loops+=1
