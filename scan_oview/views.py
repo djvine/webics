@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 # Create your views here.
 def scan_oview(request, beamline='DJV'):
 
-    days = [1,2,30,365]
+    days = [1,7,30,365]
     n_scans = []
     n_points = []
 
