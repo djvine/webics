@@ -145,6 +145,7 @@ class ScanListener(threading.Thread):
     def connect_pvs(self):
         then = time.time()
 
+        ipdb.set_trace()
         pvnames = [
             self.ioc_name+':saveData_baseName',
             self.ioc_name+':saveData_scanNumber',
