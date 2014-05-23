@@ -345,7 +345,6 @@ class ScanListener(threading.Thread):
         # Publish current scan data on redis channel and cache locally
         # At the conclusion of the scan store completed scan info to database
 
-        ipdb.set_trace()
         print '{:s} Engaged: Fly Scan {:s}'.format(self, self.ioc_name)
 
         scan_dim_val = item['data']['value']
@@ -388,6 +387,7 @@ class ScanListener(threading.Thread):
                     self.pvs[self.xfd_pref+':mca4.{0:s}HI'.format(roi)].get()
                     ]})
 
+        ipdb.set_trace()
         if x_dim>1:
             p1sp = self.pvs[self.fly_pref1d+'.P1SP'].get()
             p1ep = self.pvs[self.fly_pref1d+'.P1EP'].get()
