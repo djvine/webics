@@ -387,7 +387,6 @@ class ScanListener(threading.Thread):
                     self.pvs[self.xfd_pref+':mca4.{0:s}HI'.format(roi)].get()
                     ]})
 
-        ipdb.set_trace()
         if x_dim>1:
             p1sp = self.pvs[self.fly_pref1d+'.P1SP'].get()
             p1ep = self.pvs[self.fly_pref1d+'.P1EP'].get()
@@ -436,6 +435,7 @@ class ScanListener(threading.Thread):
                 {'name': detector, 'values': np.zeros((1)).tolist()}
             )
 
+        ipdb.set_trace()
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
         self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
 
@@ -453,7 +453,7 @@ class ScanListener(threading.Thread):
             # From fly config determine ROI channels and corresponding detector number
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
-            c_buffs_uid = self.pvs[self.xfd_pref+':UniqueID_RBV'].get()
+            c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueID_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
