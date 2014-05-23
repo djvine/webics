@@ -160,9 +160,9 @@ class ScanListener(threading.Thread):
                 self.xfd_pref+':image1:ArrayData',
                 self.xfd_pref+':image1:UniqueId_RBV',
                 ])
-            for detector in self.config.fly_det_config[self.beamline].keys():
-                if self.config.fly_det_config[self.beamline][detector]!='normal':
-                    roi = self.config.fly_det_config[self.beamline][detector]
+            for detector in scans.config.fly_det_config[self.beamline].keys():
+                if scans.config.fly_det_config[self.beamline][detector]!='normal':
+                    roi = scans.config.fly_det_config[self.beamline][detector]
                     for m in range(4):
                         pvnames.extend([
                             self.xfd_pref+':mca{0:d}.{1:s}LO'.format(m+1, roi),
