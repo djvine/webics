@@ -154,7 +154,7 @@ class ScanListener(threading.Thread):
             ]
 
         # Fly scan related PVs
-        if len(self.xfd_prefix)>0:
+        if self.xfd_prefix != '':
             pvnames.extend([
                 self.xfd_pref+':PixelsPerBuffer_RBV',
                 self.xfd_pref+':image1:ArrayData',
