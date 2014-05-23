@@ -459,7 +459,6 @@ class ScanListener(threading.Thread):
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
-                i_buffs+=1
 
                 buff = np.zeros((1047808),dtype=np.uint16)#self.pvs['buff_pv'].get()
                 if i_buffs < n_buffs:
@@ -481,6 +480,7 @@ class ScanListener(threading.Thread):
                             idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
                             cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
 
+                i_buffs+=1
                 if i_buffs == n_buffs: # End of scan line
                     i_buffs = 0
                     for detector in mca_dets:
