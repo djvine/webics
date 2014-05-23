@@ -156,7 +156,7 @@ class ScanListener(threading.Thread):
         if self.xfd_pref != '':
             pvnames.extend([
                 self.xfd_pref+':PixelsPerBuffer_RBV',
-                self.xfd_pref+':image1:ArrayData',
+                #self.xfd_pref+':image1:ArrayData',
                 self.xfd_pref+':image1:UniqueId_RBV',
                 ])
             for detector in scans.config.fly_det_config[self.beamline].keys():
