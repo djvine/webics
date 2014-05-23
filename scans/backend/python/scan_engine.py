@@ -145,7 +145,6 @@ class ScanListener(threading.Thread):
     def connect_pvs(self):
         then = time.time()
 
-        ipdb.set_trace()
         pvnames = [
             self.ioc_name+':saveData_baseName',
             self.ioc_name+':saveData_scanNumber',
@@ -169,6 +168,7 @@ class ScanListener(threading.Thread):
                             self.xfd_pref+':mca{0:d}.{1:s}HI'.format(m+1, roi)
                             ])
 
+        ipdb.set_trace()
         for pvname in pvnames:
             self.epics_connect(pvname)
 
