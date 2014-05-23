@@ -435,7 +435,6 @@ class ScanListener(threading.Thread):
                 {'name': detector, 'values': np.zeros((1)).tolist()}
             )
 
-        ipdb.set_trace()
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
         self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
 
@@ -449,6 +448,7 @@ class ScanListener(threading.Thread):
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             row = self.pvs[self.fly_pref2d+'.CPT'].get()
 
+            ipdb.set_trace()
             # Collection strategy
             # Determine how many buffers to be collected
             # From fly config determine ROI channels and corresponding detector number
@@ -467,8 +467,8 @@ class ScanListener(threading.Thread):
                     n_pix = x_dim % pix_per_buff
 
                 for detector in xfd_dets.keys():
+                    tsum = np.zeros(pix_per_buff)
                     for i in range(n_pix):
-                        tsum = np.zeros(pix_per_buff)
                         for elem in range(4): #Detector elements
                             tsum[i] += np.sum(buff[512+i*8448+elem*2048+xfd_dets[detector][elem*2]:512+i*8448+elem*2048+xfd_dets[detector][elem*2+1]])
                         if i_buffs == 0:
