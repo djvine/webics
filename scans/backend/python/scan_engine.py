@@ -478,11 +478,11 @@ class ScanListener(threading.Thread):
                             'name': detector,
                             'values': tsum.tolist(),
                             })
-                        print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                     else:
                         idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
                         cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
 
+                print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
                 if i_buffs == n_buffs: # End of scan line
                     i_buffs = 0
