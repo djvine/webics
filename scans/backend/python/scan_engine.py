@@ -341,7 +341,9 @@ class ScanListener(threading.Thread):
         print '{:s} Disengaged'.format(self)
 
     @staticmethod
-    def get_roi(detector, roi, i_pix, buff, row):
+    @multiprocess.worker
+    def get_roi(args):
+        detector, roi, i_pix, buff, row = args
         tsum = 0
         for elem in range(4): #Detector elements
             tsum += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
