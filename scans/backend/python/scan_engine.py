@@ -9,7 +9,6 @@ import cPickle
 import numpy as np
 import json
 import datetime
-import multiprocess
 # EPICS
 import epics
 # django
@@ -341,13 +340,11 @@ class ScanListener(threading.Thread):
         print '{:s} Disengaged'.format(self)
 
     @staticmethod
-    @multiprocess.worker
-    def get_roi(args):
-        detector, roi, i_pix, buff, row = args
+    def get_roi(detector, roi, i_pix, buff, row, res_list):
         tsum = 0
         for elem in range(4): #Detector elements
             tsum += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
-        return (detector, i_pix, tsum)
+        res_list[detector][i_pix] = tsum
 
     def fly_scan_monitor(self, item):
 
@@ -479,32 +476,28 @@ class ScanListener(threading.Thread):
                 print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
                 then = time.time()
 
-                multip = multiprocess.multiprocess(self.get_roi, num_processes=64)
-
+                res_list = {}
+                thread_list = []
                 for detector in xfd_dets.keys():
+                    res_list[detector] = np.zeros(n_pix)
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
-                            multip.add_job((detector, xfd_dets[detector], i, buff, row))
-                ipdb.set_trace()
-                results = multip.close_out()
+                            t=threading.Thread(target=self.get_roi, args=(detector, xfd_dets[detector], i, buff, row, res_list))
+                            t.start()
+                            thread_list.append(t)
 
-                tdic = {}
-                for result in results:
-                    detector, i_pix, tsum = result
-                    try:
-                        tdic[detector][i_pix] = tsum
-                    except IndexError:
-                        tdic[detector] = np.zeros(pix_per_buff)
-                        tdic[detector][i_pix] = tsum
+                for t in thread_list:
+                    t.join()
 
-                if i_buffs==0:
-                    cache['scan_data']['{:d}'.format(row)].append({
-                        'name': detector,
-                        'values': tdic[detector].tolist()
-                        })
-                else:
-                    idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
-                    cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
+                for detector in xfd_dets.key():
+                    if i_buffs==0:
+                        cache_pos[detector] = len(cache['scan_data']['{:d}'.format(row)])
+                        cache['scan_data']['{:d}'.format(row)].append({
+                            'name': detector,
+                            'values': tdic[detector].tolist()
+                            })
+                    else:
+                        cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(tsum.tolist())
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
