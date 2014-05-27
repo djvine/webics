@@ -156,7 +156,8 @@ class ScanListener(threading.Thread):
         if self.xfd_pref != '':
             pvnames.extend([
                 self.xfd_pref+':PixelsPerBuffer_RBV',
-                #self.xfd_pref+':image1:ArrayData',
+                self.xfd_pref+':image1:ArrayData',
+                self.xfd_pref+':image1:ArraySize0_RBV',
                 self.xfd_pref+':image1:UniqueId_RBV',
                 ])
             for detector in scans.config.fly_det_config[self.beamline].keys():
@@ -445,6 +446,7 @@ class ScanListener(threading.Thread):
         i_buffs = 0
         buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
         buffs_uid -= 1
+        buff_size = self.pvs[self.xfd_pref+'image1:ArraySize0_RBV'].get()
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             row = self.pvs[self.fly_pref2d+'.CPT'].get()
 
@@ -460,7 +462,7 @@ class ScanListener(threading.Thread):
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
 
-                buff = np.zeros((1047808),dtype=np.uint16)#self.pvs['buff_pv'].get()
+                buff = self.pvs[self.xfd_pref+':image1:ArrayData'].get(count=buff_size, use_monitor=False)
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
