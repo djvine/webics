@@ -465,7 +465,7 @@ class ScanListener(threading.Thread):
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
-
+                print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
                 for detector in xfd_dets.keys():
                     tsum = np.zeros(pix_per_buff)
                     for i in range(n_pix):
