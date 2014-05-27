@@ -442,7 +442,7 @@ class ScanListener(threading.Thread):
         def get_roi(detector, roi, i_pix, i_buffs, cache, buff):
             tsum = 0
             for elem in range(4): #Detector elements
-                tsum[i] += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
+                tsum += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
             if i_buffs==0:
                 cache['scan_data'][row].append({
                     'name': detector,
