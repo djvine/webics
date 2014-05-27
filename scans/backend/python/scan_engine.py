@@ -485,7 +485,7 @@ class ScanListener(threading.Thread):
                 for detector in xfd_dets.keys():
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
-                            t = threading.Thread(target=get_roi, args=(detector, xfd_dets[detector], i, i_buffs, cache, buff)
+                            t = threading.Thread(target=get_roi, args=(detector, xfd_dets[detector], i, i_buffs, cache, buff))
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
