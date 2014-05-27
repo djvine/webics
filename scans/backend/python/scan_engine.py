@@ -482,14 +482,14 @@ class ScanListener(threading.Thread):
                     res_list[detector] = np.zeros(n_pix)
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
-                            t=threading.Thread(target=self.get_roi, args=(detector, xfd_dets[detector], i, buff, row, res_list))
+                            t=threading.Thread(target=self.get_roi, args=(detector, xfd_dets[detector], i, buff.copy(), row, res_list))
                             t.start()
                             thread_list.append(t)
 
                 for t in thread_list:
                     t.join()
 
-                for detector in xfd_dets.key():
+                for detector in xfd_dets.keys():
                     if i_buffs==0:
                         cache_pos[detector] = len(cache['scan_data']['{:d}'.format(row)])
                         cache['scan_data']['{:d}'.format(row)].append({
