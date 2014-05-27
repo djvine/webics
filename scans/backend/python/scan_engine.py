@@ -459,13 +459,15 @@ class ScanListener(threading.Thread):
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
-
+                then = time.time()
                 buff = self.pvs[self.xfd_pref+':image1:ArrayData'].get(count=buff_size, use_monitor=False)
+                print('{:2.2f} seconds elapsed getting buffer'.format(time.time()-then))
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
                 print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
+                then = time.time()
                 for detector in xfd_dets.keys():
                     tsum = np.zeros(pix_per_buff)
                     for i in range(n_pix):
@@ -476,6 +478,7 @@ class ScanListener(threading.Thread):
                             'name': detector,
                             'values': tsum.tolist(),
                             })
+                    print('{:2.2f} seconds elapsed processing buffer')
                     else:
                         idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
                         cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
