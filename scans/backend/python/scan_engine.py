@@ -456,7 +456,6 @@ class ScanListener(threading.Thread):
             # At end of line get multi-channel scaler info
             c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
-                ipdb.set_trace()
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
@@ -490,7 +489,6 @@ class ScanListener(threading.Thread):
                             'values': self.pvs[self.fly_pref1d+'.{:s}DA'.format(detector)].get(count=x_dim, use_monitor=False).tolist()
                             })
 
-                ipdb.set_trace()
                 self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
             n_loops+=1
