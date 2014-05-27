@@ -445,12 +445,10 @@ class ScanListener(threading.Thread):
         n_buffs = np.int(np.ceil(x_dim%pix_per_buff)) # Number of buffs per row
         i_buffs = 0
         buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
-        buffs_uid -= 1
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             row = self.pvs[self.fly_pref2d+'.CPT'].get()
 
-            ipdb.set_trace()
             # Collection strategy
             # Determine how many buffers to be collected
             # From fly config determine ROI channels and corresponding detector number
@@ -458,6 +456,7 @@ class ScanListener(threading.Thread):
             # At end of line get multi-channel scaler info
             c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
+                ipdb.set_trace()
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
