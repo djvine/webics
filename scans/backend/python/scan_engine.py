@@ -439,6 +439,19 @@ class ScanListener(threading.Thread):
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
         self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
 
+        def get_roi(detector, roi, i_pix, i_buffs, cache, buff):
+            tsum = 0
+            for elem in range(4): #Detector elements
+                tsum[i] += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
+            if i_buffs==0:
+                cache['scan_data'][row].append({
+                    'name': detector,
+                    'values': tsum.tolist()
+                    })
+            else:
+                idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
+                cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
+
         n_loops = 0L
         then = time.time()
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
@@ -468,19 +481,11 @@ class ScanListener(threading.Thread):
                     n_pix = x_dim % pix_per_buff
                 print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
                 then = time.time()
+
                 for detector in xfd_dets.keys():
-                    tsum = np.zeros(pix_per_buff)
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
-                            tsum[i] += np.sum(buff[512+i*8448+elem*2048+xfd_dets[detector][elem*2]:512+i*8448+elem*2048+xfd_dets[detector][elem*2+1]])
-                    if i_buffs == 0:
-                        cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector,
-                            'values': tsum.tolist(),
-                            })
-                    else:
-                        idx = next(index for (index, d) in enumerate(cache['scan_data']['{:d}'.format(row)]) if d["name"] == detector)
-                        cache['scan_data']['{:d}'.format(row)][idx]['values'].extend(tsum.tolist())
+                            t = threading.Thread(target=get_roi, args=(detector, xfd_dets[detector], i, i_buffs, cache, buff)
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
