@@ -439,12 +439,12 @@ class ScanListener(threading.Thread):
         cache['scan']['ts_str'] = cPickle.loads(cache['scan']['ts']).strftime("%a %d %b %H:%M")
         self.redis.publish(self.beamline, json.dumps({'new_scan': cache}))
 
-        def get_roi(detector, roi, i_pix, i_buffs, cache, buff):
+        def get_roi(detector, roi, i_pix, i_buffs, cache, buff, row):
             tsum = 0
             for elem in range(4): #Detector elements
                 tsum += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
             if i_buffs==0:
-                cache['scan_data'][row].append({
+                cache['scan_data']['{:d}'.format(row)].append({
                     'name': detector,
                     'values': tsum.tolist()
                     })
@@ -485,7 +485,7 @@ class ScanListener(threading.Thread):
                 for detector in xfd_dets.keys():
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
-                            t = threading.Thread(target=get_roi, args=(detector, xfd_dets[detector], i, i_buffs, cache, buff))
+                            t = threading.Thread(target=get_roi, args=(detector, xfd_dets[detector], i, i_buffs, cache, buff, row))
                             t.start()
                 print('Waiting for worker threads')
                 main_thread = threading.currentThread()
