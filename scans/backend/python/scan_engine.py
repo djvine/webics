@@ -446,7 +446,7 @@ class ScanListener(threading.Thread):
         i_buffs = 0
         buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
         buffs_uid -= 1
-        buff_size = self.pvs[self.xfd_pref+'image1:ArraySize0_RBV'].get()
+        buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             row = self.pvs[self.fly_pref2d+'.CPT'].get()
 
