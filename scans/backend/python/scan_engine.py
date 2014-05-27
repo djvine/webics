@@ -485,6 +485,7 @@ class ScanListener(threading.Thread):
                     for i in range(n_pix):
                         for elem in range(4): #Detector elements
                             multip.add_job((detector, xfd_dets[detector], i, buff, row))
+                ipdb.set_trace()
                 results = multip.close_out()
 
                 tdic = {}
