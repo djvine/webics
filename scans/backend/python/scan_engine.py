@@ -358,6 +358,7 @@ class ScanListener(threading.Thread):
     def precompile_weave(self):
         self.parse_buffer(124, [0,100]*4, np.arange(1047808), np.zeros(124))
 
+    @staticmethod
     def parse_buffer(n_pix, roi, buff, res_list):
         weave.inline(self.c_code, ['n_pix','roi','buff','res_list'], extra_compile_args=['-O2'])
 
