@@ -483,7 +483,7 @@ class ScanListener(threading.Thread):
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
-                buff = self.pvs[self.xfd_pref+':image1:ArrayData'].get(count=buff_size, use_monitor=False)
+                buff = self.pvs[self.xfd_pref+':image1:ArrayData'].get(count=buff_size, use_monitor=False).astype(np.uint16)
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
