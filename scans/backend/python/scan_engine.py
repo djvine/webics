@@ -468,7 +468,7 @@ class ScanListener(threading.Thread):
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
         n_buffs = np.int(np.ceil(x_dim%pix_per_buff))-1 # Number of buffs per row
         i_buffs = 0
-        buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get() # Used to determine if there is a new buffer available
+        buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get(use_monitor=False) # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         row = 0
@@ -478,7 +478,7 @@ class ScanListener(threading.Thread):
             # From fly config determine ROI channels and corresponding detector number
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
-            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get()
+            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get(use_monitor=False)
             if c_buffs_uid!=buffs_uid and c_buffs_uid>0: # New buffer available
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
@@ -502,9 +502,6 @@ class ScanListener(threading.Thread):
                             })
                     else:
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
-
-                    print(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['name'],
-                            len(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values']))
 
                 if i_buffs == n_buffs: # End of scan line
                     for detector in mca_dets:
