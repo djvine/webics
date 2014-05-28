@@ -480,9 +480,7 @@ class ScanListener(threading.Thread):
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
             c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get()
-            if c_buffs_uid>buffs_uid: # New buffer available
-                if c_buffs_uid!=buffs_uid+1: # Missed a buffer!
-                    print('Error! Missed a buffer')
+            if c_buffs_uid!=buffs_uid: # New buffer available
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
@@ -517,7 +515,6 @@ class ScanListener(threading.Thread):
                 i_buffs+=1
                 if i_buffs>n_buffs:
                     i_buffs=0
-                    buffs_uid = -1
 
             n_loops+=1
             if time.time()-then>60.0:
