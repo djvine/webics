@@ -502,10 +502,10 @@ class ScanListener(threading.Thread):
                         cache_pos[detector] = len(cache['scan_data']['{:d}'.format(row)])
                         cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector,
-                            'values': res_list
+                            'values': res_list.tolist()
                             })
                     else:
-                        cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list)
+                        cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
