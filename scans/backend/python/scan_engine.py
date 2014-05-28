@@ -466,7 +466,7 @@ class ScanListener(threading.Thread):
         n_loops = 0L
         then = time.time()
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
-        n_buffs = np.int(np.ceil(x_dim%pix_per_buff)) # Number of buffs per row
+        n_buffs = np.int(np.ceil(x_dim%pix_per_buff))-1 # Number of buffs per row
         i_buffs = 0
         buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()+1 # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
@@ -489,7 +489,7 @@ class ScanListener(threading.Thread):
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
-                print('Reading {:d} pix from buffer {:d}/{:d} with uid {:d} of row {:d}'.format(n_pix, i_buffs, n_buffs, buffs_uid, row))
+                print('Reading {:d} pix from buffer {:d}/{:d} with uid {:d} of row {:d}'.format(n_pix, i_buffsi+1, n_buffs+1, buffs_uid, row))
 
                 for detector in xfd_dets.keys():
                     res_list = np.zeros(n_pix)
