@@ -466,9 +466,9 @@ class ScanListener(threading.Thread):
         n_loops = 0L
         then = time.time()
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
-        n_buffs = np.int(np.ceil(x_dim%pix_per_buff))-1 # Number of buffs per row
+        n_buffs = np.int(np.ceil(x_dim/pix_per_buff)) # Number of buffs per row
         i_buffs = 0
-        buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get(use_monitor=False) # Used to determine if there is a new buffer available
+        buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get() # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         row = 0
@@ -478,7 +478,7 @@ class ScanListener(threading.Thread):
             # From fly config determine ROI channels and corresponding detector number
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
-            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get(use_monitor=False)
+            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get()
             if c_buffs_uid!=buffs_uid and c_buffs_uid>0: # New buffer available
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
