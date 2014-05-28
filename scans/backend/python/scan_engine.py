@@ -131,6 +131,18 @@ class ScanListener(threading.Thread):
         self.pubsub.subscribe('scan_begin')
         self.pvs = {}
 
+        self.c_code = """
+        for (int i=0;i<n_pix;i++)// pix per buffer
+        {
+            for (int j=0;j<4;j++)// detector elements
+            {
+                for (int r=0;r<int(roi[j*2+1])-int(roi[j*2]);r++)// roi length
+                {
+                    res_list[i] += buff[512+i*8448+j*2048+int(roi[j*2])+r];
+                }
+            }
+        }
+        """
         if self.xfd_pref != '':
             self.precompile_weave()
 
@@ -344,24 +356,11 @@ class ScanListener(threading.Thread):
         print '{:s} Disengaged'.format(self)
 
     def precompile_weave(self):
-        # Dummy vars for weave compilation
-        n_pix = 124
-        roi = [0]*8
-        buff = np.arange(1.5e6)
-        res_list = np.zeros(124)
-        c_code = """
-        for (int i=0;i<n_pix;i++)// pix per buffer
-        {
-            for (int j=0;j<4;j++)// detector elements
-            {
-                for (int r=0;r<int(roi[j*2+1])-int(roi[j*2]);r++)// roi length
-                {
-                    res_list[i] += buff[512+i*8448+j*2048+int(roi[j*2])+r];
-                }
-            }
-        }
-        """
-        weave.inline(c_code, ['n_pix','roi','buff','res_list'], extra_compile_args=['-O2'])
+        self.parse_buffer(124, [0,100]*4, np.arange(1047808), np.zeros(124))
+
+    def parse_buffer(n_pix, roi, buff, res_list):
+        weave.inline(self.c_code, ['n_pix','roi','buff','res_list'], extra_compile_args=['-O2'])
+
 
     def fly_scan_monitor(self, item):
 
@@ -497,7 +496,7 @@ class ScanListener(threading.Thread):
                 for detector in xfd_dets.keys():
                     res_list = np.zeros(n_pix)
                     roi = xfd_dets[detector]
-                    weave.inline(c_code, ['n_pix', 'roi', 'buff', 'res_list'], extra_compile_args=['-O2'])
+                    weave.inline(self.c_code, ['n_pix', 'roi', 'buff', 'res_list'], extra_compile_args=['-O2'])
                     if i_buffs==0:
                         cache_pos[detector] = len(cache['scan_data']['{:d}'.format(row)])
                         cache['scan_data']['{:d}'.format(row)].append({
