@@ -478,7 +478,7 @@ class ScanListener(threading.Thread):
             # From fly config determine ROI channels and corresponding detector number
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
-            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get()
+            c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
