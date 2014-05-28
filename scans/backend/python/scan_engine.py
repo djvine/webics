@@ -481,18 +481,17 @@ class ScanListener(threading.Thread):
             # At end of line get multi-channel scaler info
             c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
+                if c_buffs_uid!=buffs_uid+1: # Missed a buffer!
+                    print('Error! Missed a buffer')
                 buffs_uid = c_buffs_uid
                 if i_buffs==0:
                     cache['scan_data']['{:d}'.format(row)]=[]
-                then = time.time()
                 buff = self.pvs[self.xfd_pref+':image1:ArrayData'].get(count=buff_size, use_monitor=False)
-                print('{:2.2f} seconds elapsed getting buffer'.format(time.time()-then))
                 if i_buffs < n_buffs:
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
                 print('Reading {:d} pix from buffer {:d}/{:d} of row {:d}'.format(n_pix, i_buffs, n_buffs, row))
-                then = time.time()
 
                 for detector in xfd_dets.keys():
                     res_list = np.zeros(n_pix)
@@ -507,7 +506,6 @@ class ScanListener(threading.Thread):
                     else:
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
 
-                print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 if i_buffs == n_buffs: # End of scan line
                     for detector in mca_dets:
                         cache['scan_data']['{:d}'.format(row)].append({
