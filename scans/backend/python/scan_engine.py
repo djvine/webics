@@ -468,7 +468,7 @@ class ScanListener(threading.Thread):
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
         n_buffs = np.int(np.ceil(x_dim%pix_per_buff))-1 # Number of buffs per row
         i_buffs = 0
-        buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()+1 # Used to determine if there is a new buffer available
+        buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         row = 0
@@ -501,6 +501,7 @@ class ScanListener(threading.Thread):
                             'values': res_list.tolist()
                             })
                     else:
+                        ipdb.set_trace()
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
 
                 if i_buffs == n_buffs: # End of scan line
@@ -510,7 +511,6 @@ class ScanListener(threading.Thread):
                             'values': self.pvs[self.fly_pref1d+'.{:s}DA'.format(detector)].get(count=x_dim, use_monitor=False).tolist()
                             })
 
-                ipdb.set_trace()
                 self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
                 i_buffs+=1
                 if i_buffs>n_buffs:
