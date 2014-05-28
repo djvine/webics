@@ -472,7 +472,6 @@ class ScanListener(threading.Thread):
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         row = 0
-        print(buffs_uid)
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             # Collection strategy
             # Determine how many buffers to be collected
@@ -489,7 +488,7 @@ class ScanListener(threading.Thread):
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
-                print('Reading {:d} pix from buffer {:d}/{:d} with uid {:d} of row {:d}'.format(n_pix, i_buffsi+1, n_buffs+1, buffs_uid, row))
+                print('Reading {:d} pix from buffer {:d}/{:d} with uid {:d} of row {:d}'.format(n_pix, i_buffs+1, n_buffs+1, buffs_uid, row))
 
                 for detector in xfd_dets.keys():
                     res_list = np.zeros(n_pix)
