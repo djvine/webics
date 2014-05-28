@@ -501,8 +501,10 @@ class ScanListener(threading.Thread):
                             'values': res_list.tolist()
                             })
                     else:
-                        ipdb.set_trace()
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
+
+                    cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['name']
+                    cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values']
 
                 if i_buffs == n_buffs: # End of scan line
                     for detector in mca_dets:
