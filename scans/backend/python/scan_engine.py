@@ -472,6 +472,7 @@ class ScanListener(threading.Thread):
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         row = 0
+        print(buffs_uid)
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
             # Collection strategy
             # Determine how many buffers to be collected
