@@ -503,8 +503,8 @@ class ScanListener(threading.Thread):
                     else:
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
 
-                    print(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['name'])
-                    print(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'])
+                    print(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['name'],
+                            len(cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values']))
 
                 if i_buffs == n_buffs: # End of scan line
                     for detector in mca_dets:
