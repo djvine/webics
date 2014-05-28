@@ -491,7 +491,7 @@ class ScanListener(threading.Thread):
                     n_pix =pix_per_buff
                 else:
                     n_pix = x_dim % pix_per_buff
-                print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
+                print('Reading {:d} pix from buffer {:d}/{:d} of row {:d}'.format(n_pix, i_buffs, n_buffs, row))
                 then = time.time()
 
                 for detector in xfd_dets.keys():
@@ -508,9 +508,7 @@ class ScanListener(threading.Thread):
                         cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list.tolist())
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
-                i_buffs+=1
                 if i_buffs == n_buffs: # End of scan line
-                    i_buffs = 0
                     for detector in mca_dets:
                         cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector,
@@ -518,6 +516,9 @@ class ScanListener(threading.Thread):
                             })
 
                 self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
+                i_buffs+=1
+                if i_buffs>n_buffs:
+                    i_buffs=0
 
             n_loops+=1
             if time.time()-then>60.0:
