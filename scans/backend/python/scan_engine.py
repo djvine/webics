@@ -9,6 +9,7 @@ import cPickle
 import numpy as np
 import json
 import datetime
+import weave
 # EPICS
 import epics
 # django
@@ -129,6 +130,9 @@ class ScanListener(threading.Thread):
         self.pubsub = self.redis.pubsub()
         self.pubsub.subscribe('scan_begin')
         self.pvs = {}
+
+        if self.xfd_pref != '':
+            self.precompile_weave()
 
         self.connect_pvs()
 
@@ -339,12 +343,25 @@ class ScanListener(threading.Thread):
 
         print '{:s} Disengaged'.format(self)
 
-    @staticmethod
-    def get_roi(detector, roi, i_pix, buff, row, res_list):
-        tsum = 0
-        for elem in range(4): #Detector elements
-            tsum += np.sum(buff[512+i_pix*8448+elem*2048+roi[2*elem]:512+i_pix*8448+elem*2048+roi[2*elem+1]])
-        res_list[detector][i_pix] = tsum
+    def precompile_weave(self):
+        # Dummy vars for weave compilation
+        n_pix = 124
+        roi = [0]*8
+        buff = np.arange(1.5e6)
+        res_list = np.zeros(124)
+        c_code = """
+        for (int i=0;i<n_pix;i++)// pix per buffer
+        {
+            for (int j=0;j<4;j++)// detector elements
+            {
+                for (int r=0;r<int(roi[j*2+1])-int(roi[j*2]);r++)// roi length
+                {
+                    res_list[i] += buff[512+i*8448+j*2048+int(roi[j*2])+r];
+                }
+            }
+        }
+        """
+        weave.inline(c_code, ['n_pix','roi','buff','res_list'], extra_compile_args=['-O2'])
 
     def fly_scan_monitor(self, item):
 
@@ -353,6 +370,7 @@ class ScanListener(threading.Thread):
         # At the conclusion of the scan store completed scan info to database
 
         print '{:s} Engaged: Fly Scan {:s}'.format(self, self.ioc_name)
+
 
         scan_dim_val = item['data']['value']
         # Only 2D fly scans using Fscan1 and FscanH are supported.
@@ -476,28 +494,18 @@ class ScanListener(threading.Thread):
                 print('Reading {:d} pix from buffer {:d} of row {:d}'.format(n_pix, i_buffs, row))
                 then = time.time()
 
-                res_list = {}
-                thread_list = []
                 for detector in xfd_dets.keys():
-                    res_list[detector] = np.zeros(n_pix)
-                    for i in range(n_pix):
-                        for elem in range(4): #Detector elements
-                            t=threading.Thread(target=self.get_roi, args=(detector, xfd_dets[detector], i, buff.copy(), row, res_list))
-                            t.start()
-                            thread_list.append(t)
-
-                for t in thread_list:
-                    t.join()
-
-                for detector in xfd_dets.keys():
+                    res_list = np.zeros(n_pix)
+                    roi = xfd_dets[detector]
+                    weave.inline(c_code, ['n_pix', 'roi', 'buff', 'res_list'], extra_compile_args=['-O2'])
                     if i_buffs==0:
                         cache_pos[detector] = len(cache['scan_data']['{:d}'.format(row)])
                         cache['scan_data']['{:d}'.format(row)].append({
                             'name': detector,
-                            'values': tdic[detector].tolist()
+                            'values': res_list
                             })
                     else:
-                        cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(tsum.tolist())
+                        cache['scan_data']['{:d}'.format(row)][cache_pos[detector]]['values'].extend(res_list)
 
                 print('{:2.2f} seconds elapsed processing buffer'.format(time.time()-then))
                 i_buffs+=1
