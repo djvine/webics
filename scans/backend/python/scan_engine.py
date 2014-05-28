@@ -576,10 +576,19 @@ def epics_connect(pvname, auto_monitor=False, callback=None):
             print '{:s} Not Connected'.format(pvname)
             return
 
+scan_state = {}
 def cb(pvname, value, **kwargs):
+    """
+    Here I hack together a way to ignore scans which are currently running when this script inits.
+    """
     print pvname, value
-    if value > 0 and value<4:
-        redis_server.publish('scan_begin', cPickle.dumps({'pvname': pvname, 'value': value}))
+
+    if pvname in scan_state.keys():
+        if value > 0 and value<4:
+            redis_server.publish('scan_begin', cPickle.dumps({'pvname': pvname, 'value': value}))
+    else:
+        if value == 0:
+            scan_state[pvname] = value
 
 def signal_handler(signal, frame):
     # catch ctrl-c and exit gracefully
