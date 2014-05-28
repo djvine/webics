@@ -471,9 +471,8 @@ class ScanListener(threading.Thread):
         buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get() # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
+        row = 0
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
-            row = self.pvs[self.fly_pref2d+'.CPT'].get()
-
             # Collection strategy
             # Determine how many buffers to be collected
             # From fly config determine ROI channels and corresponding detector number
@@ -515,6 +514,7 @@ class ScanListener(threading.Thread):
                 i_buffs+=1
                 if i_buffs>n_buffs:
                     i_buffs=0
+                    row+=1
 
             n_loops+=1
             if time.time()-then>60.0:
