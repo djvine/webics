@@ -174,7 +174,7 @@ class ScanListener(threading.Thread):
                 self.xfd_pref+':PixelsPerBuffer_RBV',
                 self.xfd_pref+':image1:ArrayData',
                 self.xfd_pref+':image1:ArraySize0_RBV',
-                self.xfd_pref+':image1:UniqueId_RBV',
+                self.xfd_pref+':netCDF1:NumCaptured_RBV',
                 ])
             for detector in scans.config.fly_det_config[self.beamline].keys():
                 if scans.config.fly_det_config[self.beamline][detector]!='normal':
@@ -468,7 +468,7 @@ class ScanListener(threading.Thread):
         pix_per_buff = self.pvs[self.xfd_pref+':PixelsPerBuffer_RBV'].get()
         n_buffs = np.int(np.ceil(x_dim%pix_per_buff)) # Number of buffs per row
         i_buffs = 0
-        buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get() # Used to determine if there is a new buffer available
+        buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get() # Used to determine if there is a new buffer available
         buff_size = self.pvs[self.xfd_pref+':image1:ArraySize0_RBV'].get()
         cache_pos = {}
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
@@ -479,7 +479,7 @@ class ScanListener(threading.Thread):
             # From fly config determine ROI channels and corresponding detector number
             # During row accumulate buffers and convert to pixels & spectra
             # At end of line get multi-channel scaler info
-            c_buffs_uid = self.pvs[self.xfd_pref+':image1:UniqueId_RBV'].get()
+            c_buffs_uid = self.pvs[self.xfd_pref+':netCDF1:NumCaptured_RBV'].get()
             if c_buffs_uid>buffs_uid: # New buffer available
                 if c_buffs_uid!=buffs_uid+1: # Missed a buffer!
                     print('Error! Missed a buffer')
@@ -517,6 +517,7 @@ class ScanListener(threading.Thread):
                 i_buffs+=1
                 if i_buffs>n_buffs:
                     i_buffs=0
+                    buffs_uid = -1
 
             n_loops+=1
             if time.time()-then>60.0:
