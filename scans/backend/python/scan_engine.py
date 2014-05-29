@@ -446,12 +446,12 @@ class ScanListener(threading.Thread):
         else:
             fly_pref2d_p1pa = np.array([0.0])
 
-        cache['scan_metadata'] = [{'pvname': self.fly_pref1d+'.P1PV', 'value': self.pvs[self.fly_pref1d+'.P1PV'].get()},
-                                  {'pvname': self.fly_pref2d+'.P1PV', 'value': self.pvs[self.fly_pref2d+'.P1PV'].get()}]
+        cache['scan_metadata'] = [{'pvname': self.fly_pref2d+'.P1PV', 'value': self.pvs[self.fly_pref2d+'.P1PV'].get()},
+                                  {'pvname': self.fly_pref1d+'.P1PV', 'value': self.pvs[self.fly_pref1d+'.P1PV'].get()}]
 
         cache['scan_data'] = {}
-        cache['scan_data']['y'] = {'name': cache['scan_metadata'][1]['value'], 'values': fly_pref2d_p1pa.tolist() }
-        cache['scan_data']['x'] = {'name': cache['scan_metadata'][0]['value'], 'values': fly_pref1d_p1pa.tolist() }
+        cache['scan_data']['y'] = {'name': cache['scan_metadata'][0]['value'], 'values': fly_pref2d_p1pa.tolist() }
+        cache['scan_data']['x'] = {'name': cache['scan_metadata'][1]['value'], 'values': fly_pref1d_p1pa.tolist() }
         cache['scan_data']['0'] = []
 
         for detector in cache['scan_dets']:
@@ -505,10 +505,17 @@ class ScanListener(threading.Thread):
 
                 if i_buffs == n_buffs: # End of scan line
                     for detector in mca_dets:
-                        cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector,
-                            'values': self.pvs[self.fly_pref1d+'.{:s}DA'.format(detector)].get(count=x_dim, use_monitor=False).tolist()
-                            })
+                        try:
+                            cache['scan_data']['{:d}'.format(row)].append({
+                                'name': detector,
+                                'values': self.pvs[self.fly_pref1d+'.{:s}DA'.format(detector)].get(count=x_dim, use_monitor=False).tolist()
+                                })
+                        except AttributeError:
+                            cache['scan_data']['{:d}'.format(row)].append({
+                                'name': detector,
+                                'values': [0]*x_dim,
+                                })
+
 
                 self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
                 i_buffs+=1
