@@ -524,7 +524,7 @@ class ScanListener(threading.Thread):
                     # Publish after scan line complete
                     then = time.time()
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
-                    print('{:2.2f} seconds elapsed posting {:d} bytes to redis'.format(time.time()-then, sys.getsizeof(cache))
+                    print('{:2.2f} seconds elapsed posting {:d} bytes to redis'.format(time.time()-then, sys.getsizeof(cache)))
                     #row+=1
 
             n_loops+=1
