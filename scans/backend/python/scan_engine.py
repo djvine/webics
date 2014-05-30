@@ -473,7 +473,6 @@ class ScanListener(threading.Thread):
         cache_pos = {}
         row = 0
         while self.pvs[self.fly_pref2d+'.EXSC'].get()>0: # Scan ongoing
-            row = self.pvs[self.fly_pref2d+'.CPT'].get()
             # Collection strategy
             # Determine how many buffers to be collected
             # From fly config determine ROI channels and corresponding detector number
@@ -524,8 +523,8 @@ class ScanListener(threading.Thread):
                     # Publish after scan line complete
                     then = time.time()
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
-                    print('{:2.2f} seconds elapsed posting {:d} bytes to redis'.format(time.time()-then, sys.getsizeof(cache)))
-                    #row+=1
+                    print('{:2.2f} seconds elapsed posting {:d} bytes to redis'.format(time.time()-then, sys.getsizeof(cPickle.dumps(cache))))
+                    row+=1
 
             n_loops+=1
             if time.time()-then>60.0:
