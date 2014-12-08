@@ -53,3 +53,6 @@ docs/_build/
 
 # Django secret key
 ./deploy/SECRET
+
+# Vim
+*.swp

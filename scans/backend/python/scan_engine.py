@@ -302,10 +302,13 @@ class ScanListener(threading.Thread):
                 cache['scan_data']['{:d}'.format(row)]=[]
                 if cpt>0:
                     for detector in cache['scan_dets']:
-                        cache['scan_data']['{:d}'.format(row)].append({
-                            'name': detector,
-                            'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False).tolist()
-                            })
+                        try:
+                            cache['scan_data']['{:d}'.format(row)].append({
+                                'name': detector,
+                                'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False, timeout=0.1).tolist()
+                                })
+                        except AttributeError:
+                            print(detector, cpt)
 
                     self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
@@ -321,10 +324,13 @@ class ScanListener(threading.Thread):
             cpt = new_cpt
             cache['scan_data']['{:d}'.format(row)]=[]
             for detector in cache['scan_dets']:
-                cache['scan_data']['{:d}'.format(row)].append({
-                    'name': detector,
-                    'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False).tolist()
-                    })
+                try:
+                    cache['scan_data']['{:d}'.format(row)].append({
+                        'name': detector,
+                        'values': self.pvs[self.pref1d+'.{:s}CA'.format(detector)].get(count=cpt, use_monitor=False).tolist()
+                        })
+                except AttributeError:
+                    print(detector, cpt)
 
             self.redis.publish(self.beamline, json.dumps({'update_scan': cache}))
 
@@ -627,7 +633,7 @@ def mainloop():
         client_listeners[ioc_name].start()
 
     while True:
-        time.sleep(10.0)
+        time.sleep(1.0)
 
 if __name__=='__main__':
     try:

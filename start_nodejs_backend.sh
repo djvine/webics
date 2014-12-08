@@ -1,7 +1,10 @@
 #!/bin/bash -e
-export WEBICS_HOME=/local/webics
-export NODE_ENV=production
+if [ $WEBICS_HOME ]; then
+    echo "here"
+    cd $WEBICS_HOME
+fi
+export NODE_ENV=development
 
-cd $WEBICS_HOME
-exec node scans/backend/nodejs/server.js -l logs/node.out -e logs/node.err
+#exec node ./scans/backend/nodejs/server.js -l logs/node.out -e logs/node.err
+exec node ./scans/backend/nodejs/server.js
 

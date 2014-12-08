@@ -11,11 +11,12 @@ elif hostname in ['dusk', 'dawn']:
 
 	ioc_names = {
 		'DJV': 'djv',
-		'2-ID-B': '2idb1',
+		#'2-ID-B': '2idb1',
 		#'2-ID-D': '2idd',
 	}
 
 xfd_ioc_name = {
+        'DJV'   : '',
         '2-ID-B': '',
         '2-ID-E': 'dxpXMAP2xfm3',
         '2-ID-D': '',

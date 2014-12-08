@@ -169,6 +169,7 @@ function LinePlot(argsMap){
 			})
 		} else {
 			for (var i = 0; i < dets.length; i++) {
+                console.log(row, dataMap, dets);
 				dataMap[row].forEach(function(v){
 					if (v.name==dets[i]){
 						dataValues.push(v.values);
