@@ -154,8 +154,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'south',
-    'scans',
     'chat',
     'det_buttons',
     'history',
@@ -164,7 +162,7 @@ INSTALLED_APPS = (
     'images',
     'scan_oview',
     'overview',
-    'compressor',
+    'scans',
 )
 ########## END APP CONFIGURATION
 

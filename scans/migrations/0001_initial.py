@@ -1,114 +1,126 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import scans.pickled_object
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Scan'
-        db.create_table(u'scans_scan', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('beamline', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('scan_id', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('ts', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal(u'scans', ['Scan'])
+    dependencies = [
+    ]
 
-        # Adding model 'ScanHistory'
-        db.create_table(u'scans_scanhistory', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('scan', self.gf('django.db.models.fields.related.ForeignKey')(related_name='history', to=orm['scans.Scan'])),
-            ('dim', self.gf('django.db.models.fields.IntegerField')()),
-            ('completed', self.gf('django.db.models.fields.IntegerField')()),
-            ('requested', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal(u'scans', ['ScanHistory'])
-
-        # Adding model 'ScanDetectors'
-        db.create_table(u'scans_scandetectors', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('scan', self.gf('django.db.models.fields.related.ForeignKey')(related_name='detectors', to=orm['scans.Scan'])),
-            ('active', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal(u'scans', ['ScanDetectors'])
-
-        # Adding model 'ScanData'
-        db.create_table(u'scans_scandata', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('scan', self.gf('django.db.models.fields.related.ForeignKey')(related_name='data', to=orm['scans.Scan'])),
-            ('pvname', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('row', self.gf('django.db.models.fields.IntegerField')()),
-            ('value', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'scans', ['ScanData'])
-
-        # Adding model 'ScanMetadata'
-        db.create_table(u'scans_scanmetadata', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('scan', self.gf('django.db.models.fields.related.ForeignKey')(related_name='metadata', to=orm['scans.Scan'])),
-            ('pvname', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('value', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'scans', ['ScanMetadata'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Scan'
-        db.delete_table(u'scans_scan')
-
-        # Deleting model 'ScanHistory'
-        db.delete_table(u'scans_scanhistory')
-
-        # Deleting model 'ScanDetectors'
-        db.delete_table(u'scans_scandetectors')
-
-        # Deleting model 'ScanData'
-        db.delete_table(u'scans_scandata')
-
-        # Deleting model 'ScanMetadata'
-        db.delete_table(u'scans_scanmetadata')
-
-
-    models = {
-        u'scans.scan': {
-            'Meta': {'object_name': 'Scan'},
-            'beamline': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'scan_id': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'ts': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
-        },
-        u'scans.scandata': {
-            'Meta': {'object_name': 'ScanData'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pvname': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'row': ('django.db.models.fields.IntegerField', [], {}),
-            'scan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'data'", 'to': u"orm['scans.Scan']"}),
-            'value': ('django.db.models.fields.TextField', [], {})
-        },
-        u'scans.scandetectors': {
-            'Meta': {'object_name': 'ScanDetectors'},
-            'active': ('django.db.models.fields.IntegerField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'scan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'detectors'", 'to': u"orm['scans.Scan']"})
-        },
-        u'scans.scanhistory': {
-            'Meta': {'object_name': 'ScanHistory'},
-            'completed': ('django.db.models.fields.IntegerField', [], {}),
-            'dim': ('django.db.models.fields.IntegerField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'requested': ('django.db.models.fields.IntegerField', [], {}),
-            'scan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'history'", 'to': u"orm['scans.Scan']"})
-        },
-        u'scans.scanmetadata': {
-            'Meta': {'object_name': 'ScanMetadata'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pvname': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'scan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'metadata'", 'to': u"orm['scans.Scan']"}),
-            'value': ('django.db.models.fields.TextField', [], {})
-        }
-    }
-
-    complete_apps = ['scans']
+    operations = [
+        migrations.CreateModel(
+            name='Experiment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=255, verbose_name=b'Proposal Title')),
+                ('proposal_id', models.IntegerField(verbose_name=b'Proposal ID')),
+                ('exp_type', models.CharField(default=b'GUP', max_length=3, verbose_name=b'Experiment Type', choices=[(b'GUP', b'General User Program'), (b'PUP', b'Partner User Program'), (b'RA', b'Rapid-Access')])),
+                ('run', models.CharField(max_length=10, verbose_name=b'Run')),
+                ('start_date', models.DateTimeField(verbose_name=b'Start date')),
+                ('end_date', models.DateTimeField(verbose_name=b'End date')),
+                ('beamline', models.CharField(max_length=200, verbose_name=b'Beamline')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Scan',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('scan_id', models.CharField(max_length=255, verbose_name=b'Scan ID')),
+                ('ts', models.DateTimeField(auto_now_add=True, verbose_name=b'Scan Initiated')),
+                ('experiment', models.ForeignKey(related_name='scan', to='scans.Experiment')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ScanData',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(default=b'', max_length=255, verbose_name=b'Name')),
+                ('pvname', models.CharField(max_length=255, verbose_name=b'PV name')),
+                ('row', models.IntegerField(verbose_name=b'Scan Row')),
+                ('value', scans.pickled_object.PickledObjectField(verbose_name=b'Value', null=True, editable=False)),
+                ('scan', models.ForeignKey(related_name='data', to='scans.Scan')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ScanDetectors',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('active', models.IntegerField(verbose_name=b'Valid Scan Record Detector Number')),
+                ('scan', models.ForeignKey(related_name='detectors', to='scans.Scan')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ScanHistory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('dim', models.IntegerField(verbose_name=b'Scan Dimension')),
+                ('completed', models.IntegerField(verbose_name=b'Points Completed')),
+                ('requested', models.IntegerField(verbose_name=b'Points Requested')),
+                ('scan', models.ForeignKey(related_name='history', to='scans.Scan')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ScanMetadata',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('pvname', models.CharField(max_length=256, verbose_name=b'PV name')),
+                ('value', models.TextField(verbose_name=b'Scan Value')),
+                ('scan', models.ForeignKey(related_name='metadata', to='scans.Scan')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='User',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('user_id', models.IntegerField(unique=True, verbose_name=b'User ID')),
+                ('badge', models.IntegerField(verbose_name=b'Badge')),
+                ('first_name', models.CharField(max_length=100, verbose_name=b'First Name')),
+                ('last_name', models.CharField(max_length=100, verbose_name=b'Last Name')),
+                ('email', models.CharField(max_length=100, verbose_name=b'Email')),
+                ('inst_id', models.IntegerField(verbose_name=b'Insitution ID')),
+                ('inst', models.CharField(max_length=200, verbose_name=b'Institution')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='scandata',
+            unique_together=set([('scan', 'pvname', 'row')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='scan',
+            unique_together=set([('scan_id', 'experiment')]),
+        ),
+        migrations.AddField(
+            model_name='experiment',
+            name='user',
+            field=models.ForeignKey(related_name='experiment', to='scans.User'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='experiment',
+            unique_together=set([('user', 'beamline', 'start_date')]),
+        ),
+    ]
