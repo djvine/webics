@@ -2,12 +2,14 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from django.conf import settings
 import scans.pickled_object
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -22,6 +24,7 @@ class Migration(migrations.Migration):
                 ('start_date', models.DateTimeField(verbose_name=b'Start date')),
                 ('end_date', models.DateTimeField(verbose_name=b'End date')),
                 ('beamline', models.CharField(max_length=200, verbose_name=b'Beamline')),
+                ('user', models.ForeignKey(related_name='experiment', to=settings.AUTH_USER_MODEL)),
             ],
             options={
             },
@@ -90,16 +93,14 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='User',
+            name='UserProfile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('user_id', models.IntegerField(unique=True, verbose_name=b'User ID')),
-                ('badge', models.IntegerField(verbose_name=b'Badge')),
-                ('first_name', models.CharField(max_length=100, verbose_name=b'First Name')),
-                ('last_name', models.CharField(max_length=100, verbose_name=b'Last Name')),
-                ('email', models.CharField(max_length=100, verbose_name=b'Email')),
+                ('aps_user_id', models.IntegerField(unique=True, verbose_name=b'User ID')),
+                ('badge', models.IntegerField(unique=True, verbose_name=b'Badge')),
                 ('inst_id', models.IntegerField(verbose_name=b'Insitution ID')),
                 ('inst', models.CharField(max_length=200, verbose_name=b'Institution')),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
             options={
             },
@@ -112,12 +113,6 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='scan',
             unique_together=set([('scan_id', 'experiment')]),
-        ),
-        migrations.AddField(
-            model_name='experiment',
-            name='user',
-            field=models.ForeignKey(related_name='experiment', to='scans.User'),
-            preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
             name='experiment',

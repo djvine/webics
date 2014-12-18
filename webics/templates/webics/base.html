@@ -52,8 +52,15 @@
             {% endfor %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/login/">Login</a></li>
+            <li>{{user}}</li>
+            {% if user.is_anonymous %}
+            <li><a href={% url 'django.contrib.auth.views.login' %}>Login</a></li>
+            {% else %}
+            <li><a href={% url 'django.contrib.auth.views.logout' %}>Logout</a></li>
+            {% endif %}
+            {% if user.is_staff %}
             <li><a href="/admin/">Admin</a></li>
+            {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
       </div>

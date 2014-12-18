@@ -14,10 +14,11 @@ import h5py
 # django
 import django
 from django.db import transaction
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 import scans.config
-from scans.models import User, Experiment, Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata, flush_transaction
+from scans.models import UserProfile, Experiment, Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata, flush_transaction
 import schedule
 
 """
@@ -69,20 +70,27 @@ class Importer():
             run = schedule.findRunName(ctime, ctime)
             info = schedule.get_experiment_info(beamline=self.beamline, date=ctime)
 
-        user, created = User.objects.get_or_create(
-                user_id=info['user_id'],
-                badge=info['badge'],
-                first_name=info['first_name'],
-                last_name=info['last_name'],
-                email=info['email'],
-                inst=info['inst'],
-                inst_id=info['inst_id']
+        user = User.objects.get_or_create(
+                username = info['badge'],
+                first_name = info['first_name'],
+                last_name = info['last_name'],
+                email = info['email'],
+                is_staff = False,
+                is_superuser=False
                 )
         if created:
             print('Created user: ', user)
         else:
             print('Existing user: ', user)
         user.save()
+
+        user_profile, created = UserProfile.objects.get_or_create(
+                user=user,
+                badge=info['badge'],
+                inst=info['inst'],
+                inst_id=info['inst_id']
+                )
+
         experiment, created = user.experiment.get_or_create(
                 title=info['proposal_title'],
                 proposal_id=info['proposal_id'],

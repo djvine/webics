@@ -172,6 +172,9 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 ########## END URL CONFIGURATION
 
+########## LOGIN CONFIGURATION
+LOGIN_REDIRECT_URL = '/'
+########## END URL CONFIGURATION
 
 ########## KEY CONFIGURATION
 # Try to load the SECRET_KEY from our SECRET_FILE. If that fails, then generate

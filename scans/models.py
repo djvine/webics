@@ -23,11 +23,11 @@ def flush_transaction():
         transaction.set_autocommit(True)
 
 # Create your models here.
-class APSUser(models.Model):
+class UserProfile(models.Model):
 
     user = models.OneToOneField(User)
-    user_id = models.IntegerField('User ID', unique=True)
-    badge = models.IntegerField('Badge')
+    aps_user_id = models.IntegerField('User ID', unique=True)
+    badge = models.IntegerField('Badge', unique=True)
     inst_id = models.IntegerField('Insitution ID')
     inst = models.CharField('Institution', max_length=200)
 

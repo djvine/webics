@@ -1,4 +1,5 @@
-from scans.models import User, Experiment, Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata
+from django.contrib.auth.models import User
+from scans.models import Experimenter, Experiment, Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata
 from django.utils import timezone
 import cPickle
 import numpy as np
@@ -25,6 +26,7 @@ for date in dates:
             inst_id=info['inst_id']
             )
     user.save()
+
     experiment, created = user.experiment.get_or_create(
             title=info['proposal_title'],
             proposal_id=info['proposal_id'],
