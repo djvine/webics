@@ -1,4 +1,5 @@
 from django.db import models, transaction, connections
+from django.contrib.auth.models import User
 from django.utils import timezone
 from pickled_object import PickledObjectField
 import datetime
@@ -22,17 +23,16 @@ def flush_transaction():
         transaction.set_autocommit(True)
 
 # Create your models here.
-class User(models.Model):
+class APSUser(models.Model):
+
+    user = models.OneToOneField(User)
     user_id = models.IntegerField('User ID', unique=True)
     badge = models.IntegerField('Badge')
-    first_name = models.CharField('First Name', max_length=100)
-    last_name = models.CharField('Last Name', max_length=100)
-    email = models.CharField('Email', max_length=100)
     inst_id = models.IntegerField('Insitution ID')
     inst = models.CharField('Institution', max_length=200)
 
     def __unicode__(self):
-        return '<{:d}> {:s}'.format(self.user_id, self.last_name)
+        return '<{:d}> {:s}'.format(self.user_id, self.user.last_name)
 
 class Experiment(models.Model):
 

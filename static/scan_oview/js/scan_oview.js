@@ -5,7 +5,7 @@ $(document).ready(function(){
 		domain: "month",
 		subDomain: "day",
 		data: data,
-		start: new Date(Math.abs(new Date()-345*24*3600*1000)),
+		start: new Date(Math.abs(new Date()-11*30*24*3600*1000)),
 		cellSize: 10,
 		range: 12,
 		tooltip: true,

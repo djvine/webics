@@ -1,4 +1,7 @@
 Django==1.7.1
 MySQL-python==1.2.5
+ipdb==0.8
 ipython==2.3.1
+numpy==1.9.1
+suds==0.4
 wsgiref==0.1.2
