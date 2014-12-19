@@ -231,15 +231,12 @@ def get_experiment_info(beamline='2-ID-E', date=None):
                         data['start_time'] = event.startTime
                         data['end_time'] = event.endTime
                         data['proposal_title'] = event.beamtimeRequest.proposal.proposalTitle
+                        data['users'] = []
                         for experimenter in event.beamtimeRequest.proposal.experimenters.experimenter:
-                            if 'piFlag' in experimenter.__keylist__:
-                                data['user_id'] = experimenter['id']
-                                data['badge'] = experimenter['badge']
-                                data['first_name'] = experimenter['firstName']
-                                data['last_name'] = experimenter['lastName']
-                                data['email'] = experimenter['email']
-                                data['inst'] = experimenter['institution']
-                                data['inst_id'] = experimenter['instId']
+                            user = {}
+                            for key in experimenter.keys():
+                                user[key] = experimenter[key]
+                            data['users'].append(user)
         except:
             ipdb.set_trace()
             raise

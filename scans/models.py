@@ -52,6 +52,7 @@ class UserProfile(models.Model):
     badge = models.IntegerField('Badge', unique=True)
     inst_id = models.IntegerField('Insitution ID')
     inst = models.CharField('Institution', max_length=200)
+    pi = models.BooleanField('Principal Investigator', default=False)
 
     def __unicode__(self):
         return '<{:d}> {:s}'.format(self.user_id, self.user.last_name)
