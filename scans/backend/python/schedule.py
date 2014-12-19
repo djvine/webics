@@ -45,9 +45,6 @@ The credentials are stored in a '.ini' file and read by python.
 if socket.gethostname()=='dawn':
     cf.read('/home/david/python/beamon/beamon/credentials.ini')
     base = 'https://schedule.aps.anl.gov/beamschedds/springws/'
-elif socket.gethostname()=='dusk':
-    cf.read('/home/david/python/webics/scans/backend/python/credentials.ini')
-    base = 'https://schedule.aps.anl.gov:8443/beamschedds/springws/'
 else:
     cf.read('/local/beamon/beamon/credentials.ini')
     base = 'https://schedule.aps.anl.gov:8443/beamschedds/springws/'
@@ -210,6 +207,45 @@ def get_pi(beamline='2-ID-E', date=None):
 	        pi = user
 		break
     return pi
+
+def get_experiment_info(beamline='2-ID-E', date=None):
+    # This function grabs a parcel of information primarily for use by webics
+
+    runScheduleServiceClient, beamlineScheduleServiceClient = setup_connection()
+    if not date:
+        date = datetime.datetime.now()
+    run_name = findRunName(date, date)
+    schedule = findBeamlineSchedule(beamline, run_name)
+
+    events = schedule.activities.activity
+    data = defaultdict(dict)
+    for event in events:
+        try:
+            if event.activityType.activityTypeName in ['GUP', 'PUP', 'rapid-access']:
+                if date >= event.startTime and date <= event.endTime:
+                        data['experiment_type'] = event.activityType.activityTypeName
+                        data['proposal_id'] = event.activityName
+                        data['start_time'] = event.startTime
+                        data['end_time'] = event.endTime
+                        data['proposal_title'] = event.beamtimeRequest.proposal.proposalTitle
+                        for experimenter in event.beamtimeRequest.proposal.experimenters.experimenter:
+                            if 'piFlag' in experimenter.__keylist__:
+                                data['user_id'] = experimenter['id']
+                                data['badge'] = experimenter['badge']
+                                data['first_name'] = experimenter['firstName']
+                                data['last_name'] = experimenter['lastName']
+                                data['email'] = experimenter['email']
+                                data['inst'] = experimenter['institution']
+                                data['inst_id'] = experimenter['instId']
+        except:
+            ipdb.set_trace()
+            raise
+
+    return data
+
+
+
+
 
 if __name__ == '__main__':
 
