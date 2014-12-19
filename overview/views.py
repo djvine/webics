@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.contrib.auth.decorators import login_required
 from scans.models import Scan, ScanHistory, ScanDetectors, ScanData, ScanMetadata
 import scans.config
 
@@ -7,8 +7,7 @@ import json
 import pytz
 from datetime import datetime, timedelta
 
-
-# Create your views here.
+@login_required
 def overview(request):
 
     days = [1,2,30,365]

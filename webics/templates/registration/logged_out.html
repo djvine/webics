@@ -1,7 +1,17 @@
 {% extends "webics/base.html" %}
 
-{% block content %}
+{% block title %}
+Webics - Logged Out
+{% endblock %}
 
-Logged out!
+{% block extra_head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'webics/css/logout.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-6 col-lg-offset-3">
+    <h3>Logged out!</h3>
+</div>
 
 {% endblock %}

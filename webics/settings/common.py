@@ -174,6 +174,7 @@ WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 
 ########## LOGIN CONFIGURATION
 LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login'
 ########## END URL CONFIGURATION
 
 ########## KEY CONFIGURATION
