@@ -22,18 +22,6 @@ def flush_transaction():
     finally:
         transaction.set_autocommit(True)
 
-# Create your models here.
-class UserProfile(models.Model):
-
-    user = models.OneToOneField(User)
-    aps_user_id = models.IntegerField('User ID', unique=True)
-    badge = models.IntegerField('Badge', unique=True)
-    inst_id = models.IntegerField('Insitution ID')
-    inst = models.CharField('Institution', max_length=200)
-
-    def __unicode__(self):
-        return '<{:d}> {:s}'.format(self.user_id, self.user.last_name)
-
 class Experiment(models.Model):
 
     experiment_types = (
@@ -56,6 +44,18 @@ class Experiment(models.Model):
 
     class Meta:
         unique_together = ('user', 'beamline', 'start_date')
+
+class UserProfile(models.Model):
+
+    user = models.ForeignKey(User, related_name='profile')
+    aps_user_id = models.IntegerField('User ID', unique=True)
+    badge = models.IntegerField('Badge', unique=True)
+    inst_id = models.IntegerField('Insitution ID')
+    inst = models.CharField('Institution', max_length=200)
+
+    def __unicode__(self):
+        return '<{:d}> {:s}'.format(self.user_id, self.user.last_name)
+
 
 class Scan(models.Model):
     experiment = models.ForeignKey(Experiment, related_name='scan')

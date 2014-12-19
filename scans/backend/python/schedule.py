@@ -47,7 +47,7 @@ if socket.gethostname()=='dawn':
     base = 'https://schedule.aps.anl.gov/beamschedds/springws/'
 elif socket.gethostname()=='dusk':
     cf.read('/home/david/python/webics/scans/backend/python/credentials.ini')
-    base = 'https://schedule.aps.anl.gov:8443/beamschedds/springws/'
+    base = 'https://schedule.aps.anl.gov/beamschedds/springws/'
 else:
     cf.read('/local/beamon/beamon/credentials.ini')
     base = 'https://schedule.aps.anl.gov:8443/beamschedds/springws/'
